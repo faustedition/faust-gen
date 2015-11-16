@@ -132,6 +132,15 @@ svg.diplomatic rect.patchBackground {
     fill-opacity: 0.8;
 }
 
+
+svg.diplomatic .element-patch {
+  transition: opacity 0.5s ease-out;
+}
+
+svg.diplomatic .patch-transparent {
+  opacity: 0.1;
+} 
+
 /* various annotations */
 
 svg.diplomatic .text.rewrite {
