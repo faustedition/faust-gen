@@ -30,6 +30,11 @@ var transcriptGeneration = (function(){
     var createDiplomaticSvg = function(diplomaticTranscriptString, callback) {
     
       var diplomaticTranscriptJson = JSON.parse(diplomaticTranscriptString);
+      if (diplomaticTranscriptString === undefined) {
+        throw "Argument is undefined!";
+      } else if (diplomaticTranscriptJson === undefined) {
+        throw "JSON parsing failed!";
+      }
 
       var renderContainer = createRenderContainer();
       document.body.appendChild(renderContainer);
@@ -61,9 +66,17 @@ var transcriptGeneration = (function(){
           svgRoot.setAttribute("width", rootBBox.width);
           svgRoot.setAttribute("height", rootBBox.height);
 
-          document.body.removeChild(renderContainer);
+          //document.body.removeChild(renderContainer);
 
+          var serializer = new XMLSerializer(),
+              serializedSVG = serializer.serializeToString(renderContainer.firstChild).replace(/&nbsp;/g, '&#160;');
           callback(renderContainer.firstChild);
+          try {
+            console.log("Calling phantom callback: ", serializedSVG);
+            window.callPhantom(serializedSVG);
+          } catch (e) {
+            console.log("Phantom callback failed: ", e);
+          }
         }
       };
 
