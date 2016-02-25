@@ -23,6 +23,17 @@ var transcriptGeneration = (function(){
     return createRenderContainer;
   })();
 
+
+  function serializeToPhantom(node) {
+          var serializer = new XMLSerializer(),
+              serializedSVG = serializer.serializeToString(node).replace(/&nbsp;/g, '&#160;');
+          try {
+            window.callPhantom(serializedSVG);
+          } catch (e) {
+            console.log("Phantom callback failed: ", e);
+          }
+  };
+
   transcriptGeneration.createDiplomaticSvg = (function() {
     var iterations = 15;
     var timeout = 5;
@@ -66,17 +77,10 @@ var transcriptGeneration = (function(){
           svgRoot.setAttribute("width", rootBBox.width);
           svgRoot.setAttribute("height", rootBBox.height);
 
-          //document.body.removeChild(renderContainer);
-
-          var serializer = new XMLSerializer(),
-              serializedSVG = serializer.serializeToString(renderContainer.firstChild).replace(/&nbsp;/g, '&#160;');
+          serializeToPhantom(renderContainer.firstChild);
+          document.body.removeChild(renderContainer);
           callback(renderContainer.firstChild);
-          try {
-            console.log("Calling phantom callback: ", serializedSVG);
-            window.callPhantom(serializedSVG);
-          } catch (e) {
-            console.log("Phantom callback failed: ", e);
-          }
+
         }
       };
 
@@ -139,6 +143,7 @@ var transcriptGeneration = (function(){
       facsimileOverlaySvg.style.position = "static";
       facsimileOverlaySvg.style.top = "auto";
       facsimileOverlaySvg.style.left = "auto";
+      serializeToPhantom(facsimileOverlaySvg);
       return facsimileOverlaySvg ;
     };
 
