@@ -8,8 +8,11 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
+import java.util.PrimitiveIterator.OfInt;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
@@ -28,50 +31,92 @@ public class DiplomaticConversion {
 
 	public static Path root = Paths.get("/home/tv/Faust/");
 	public static Path target = Paths.get("target");
+	
+	public static class TranscriptPage {
+		public final Document document;
+		private final String page;
+		private final int pageNo;
+		
+		public TranscriptPage(Document document, String page, final int pageNo) {
+			this.document = document;
+			this.page = page;
+			this.pageNo = pageNo;
+		}
+		
+		public Path source() {
+			return resolveFaustUri(document.base.resolve(page));
+		}
+		
+		private Path getPagePath(final String extension) {
+			return Paths.get(document.relPath.toString(), MessageFormat.format("page_{0}.{1}", pageNo, extension));
+		}
 
-	public static Stream<URI> findTranscript(final Path path) {
-		try {
-			final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
-			final URI base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
-			final Builder<URI> builder = Stream.builder();
-			doc.forEach(tag -> builder.accept(base.resolve(tag.getAttribute("uri"))), "//docTranscript[@uri]");
-			return builder.build();
-		} catch (final XMLDocumentException e) {
-			logger.log(Level.WARNING, path + ": XML extraction error", e);
-			return Stream.empty();
+		public TranscriptPage writeTranscriptJson() {
+			final Path targetPath = getJsonPath();
+			targetPath.getParent().toFile().mkdirs();
+			try (FileInputStream input = new FileInputStream(source().toFile())) {
+				final StringWriter output = new StringWriter();
+				SimpleTransform.simpleTransform(input, output);
+				com.google.common.io.Files.write(output.toString(), targetPath.toFile(), Charset.forName("UTF-8"));
+			} catch (IOException | TransformerException | XMLStreamException e) {
+				logger.log(Level.SEVERE, "Failed to generate JSON for " + document.base.resolve(page), e);
+			}
+			return this;
+		}
+
+		private Path getJsonPath() {
+			return target.resolve("pages/").resolve(getPagePath("json"));
+		}
+	}
+
+	
+	
+	public static class Document {
+		
+		private final Path path;
+		/** The base faust:// uri for the transcripts of this document */
+		public URI base;
+		/** The relative path to this document */
+		public final Path relPath;
+		/** The faust:// uri for this document */
+		public URI faustURI;
+
+		public Document(final Path path) {
+			this.path = path;
+			this.relPath = root.relativize(path);
+			this.faustURI = URI.create("faust://xml/" + relPath.toString());
+		}
+		
+		public Stream<TranscriptPage> transcripts() {
+			try {
+				final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
+				base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
+				final Builder<TranscriptPage> builder = Stream.builder();
+				final OfInt pageNumbers = IntStream.iterate(1, i -> i+1).sequential().iterator();
+				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), pageNumbers.nextInt())), "//docTranscript[@uri]");
+				return builder.build();
+			} catch (final XMLDocumentException e) {
+				logger.log(Level.WARNING, path + ": XML extraction error", e);
+				return Stream.empty();
+			}
 		}
 	}
 
 	public static void main(final String[] args) throws IOException {
 		logger.info(System.getProperties().toString());
-		getDiplomaticTranscripts()
-			.forEach(DiplomaticConversion::writeTranscriptJson);
+		getDocuments()
+			.flatMap(document -> document.transcripts())
+			.forEach(page -> page.writeTranscriptJson());
 	}
 
-	public static URI writeTranscriptJson(final URI faustURI) {
-		final Path sourcePath = resolveFaustUri(faustURI);
-		final Path targetPath = getJsonPath(faustURI);
-		targetPath.getParent().toFile().mkdirs();
-		try (FileInputStream input = new FileInputStream(sourcePath.toFile())) {
-			final StringWriter output = new StringWriter();
-			SimpleTransform.simpleTransform(input, output);
-			com.google.common.io.Files.write(output.toString(), targetPath.toFile(), Charset.forName("UTF-8"));
-		} catch (IOException | TransformerException | XMLStreamException e) {
-			logger.log(Level.SEVERE, "Failed to generate JSON for " + faustURI.toString(), e);
-		}
-		return faustURI;
-	}
-
-	private static Path getJsonPath(final URI faustURI) {
-		return target.resolve(faustURI.getPath().substring(1).concat(".json"));
-	}
 
 	public static Path resolveFaustUri(final URI uri) {
 		return root.resolve(uri.getPath().substring(1));
 	}
 
-	private static Stream<URI> getDiplomaticTranscripts() throws IOException {
-		return Files.walk(root.resolve("document")).filter(path -> path.toString().endsWith(".xml")).flatMap(
-				DiplomaticConversion::findTranscript);
+	private static Stream<Document> getDocuments() throws IOException {
+		return Files.walk(root.resolve("document"))
+				.filter(path -> path.toString().endsWith(".xml"))
+				.map(path -> new Document(path));
 	}
 }
