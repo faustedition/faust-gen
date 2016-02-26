@@ -5,20 +5,12 @@
 	<artifactId>faust-gen</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Faust-Edition Site Generation</name>
+	
+	<properties>
+		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
+	</properties>
 
 	<repositories>
-
-		<repository>
-			<id>nexus.dariah</id>
-			<name>DARIAH Nexus Public Repository</name>
-			<url>http://dev.dariah.eu/nexus/content/groups/public</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
 
 		<repository>
 			<id>dh.nexus.releases</id>
@@ -42,6 +34,19 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+		
+		<repository>
+			<id>nexus.dariah</id>
+			<name>DARIAH Nexus Public Repository</name>
+			<url>http://dev.dariah.eu/nexus/content/groups/public</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+
 
 	</repositories>
 
@@ -92,6 +97,47 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+			
+			<plugin>
+				<groupId>com.github.klieber</groupId>
+				<artifactId>phantomjs-maven-plugin</artifactId>
+				<version>0.7</version>
+				<configuration>
+					<version>2.1.1</version>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>install</goal>
+						</goals>
+						<phase>compile</phase>
+					</execution>
+				</executions>				
+			</plugin>
+			
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.4.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<phase>prepare-package</phase>
+						<configuration>
+							<mainClass>net.faustedition.gen.DiplomaticConversion</mainClass>
+							<systemProperties>
+								<systemProperty>
+									<key>phantomjs.binary</key>
+									<value>${phantomjs.binary}</value>
+								</systemProperty>
+							</systemProperties>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
 		</plugins>
 	</build>
 </project>
