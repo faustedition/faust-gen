@@ -1,7 +1,10 @@
 package net.faustedition.gen;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -63,6 +66,32 @@ public class DiplomaticConversion {
 			}
 			return this;
 		}
+		
+		@Override
+		public String toString() {
+			return MessageFormat.format("{0} page {1}: {2}", document.faustURI, pageNo, document.base.resolve(page));
+		}
+		
+		public TranscriptPage buildSVGs() {
+			logger.info("Converting " + this);
+			try {
+				Process renderProcess = new ProcessBuilder(
+						System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"),
+//						"--debug=true",
+						"rendersvgs.js",
+						"http://localhost/faust-gen/transcript-generation.html",
+						getJsonPath().toString(),
+						target.resolve("transcripts").resolve("diplomatic").resolve(getPagePath("svg")).toString()
+						)
+					.redirectErrorStream(true)
+					.start();
+				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
+				bufferedReader.lines().forEach(line -> logger.warning(line));
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, "Failed to convert SVG for " + document.base.resolve(page), e);
+			}
+			return this;
+		}
 
 		private Path getJsonPath() {
 			return target.resolve("pages/").resolve(getPagePath("json"));
@@ -104,10 +133,15 @@ public class DiplomaticConversion {
 
 	public static void main(final String[] args) throws IOException {
 		logger.info(System.getProperties().toString());
+		
 		getDocuments()
 			.flatMap(document -> document.transcripts())
-			.forEach(page -> page.writeTranscriptJson());
+			.parallel()
+			.map(page -> page.writeTranscriptJson())
+			.forEach(page -> page.buildSVGs());
+		
 	}
+
 
 
 	public static Path resolveFaustUri(final URI uri) {

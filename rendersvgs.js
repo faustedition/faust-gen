@@ -2,6 +2,12 @@
  * Demo that renders a transcript using phantomjs. Needs to be run with
  * phantomws, obviously.
  */
+
+window.setTimeout(function() {
+    console.log("ERROR: Timeout during conversion for " + input);
+    phantom.exit(2);
+  }, 10000);
+
 var page = require('webpage').create(),
     fs = require('fs'),
     system = require('system');
@@ -47,4 +53,5 @@ page.open(backend, function(status) {
   };
 
   page.evaluate(render, transcript, imagelinks);
+  
 });
