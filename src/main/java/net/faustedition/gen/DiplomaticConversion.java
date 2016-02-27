@@ -22,6 +22,7 @@ import java.util.stream.Stream.Builder;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerException;
 
+import com.google.common.base.Joiner;
 import com.mycila.xmltool.XMLDoc;
 import com.mycila.xmltool.XMLDocumentException;
 import com.mycila.xmltool.XMLTag;
@@ -72,7 +73,7 @@ public class DiplomaticConversion {
 			return MessageFormat.format("{0} page {1}: {2}", document.faustURI, pageNo, document.base.resolve(page));
 		}
 		
-		public TranscriptPage buildSVGs() {
+		public boolean buildSVGs() {
 			logger.info("Converting " + this);
 			try {
 				Process renderProcess = new ProcessBuilder(
@@ -87,10 +88,11 @@ public class DiplomaticConversion {
 					.start();
 				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
 				bufferedReader.lines().forEach(line -> logger.warning(line));
-			} catch (IOException e) {
+				return renderProcess.waitFor() != 0;
+			} catch (IOException | InterruptedException e) {
 				logger.log(Level.SEVERE, "Failed to convert SVG for " + document.base.resolve(page), e);
 			}
-			return this;
+			return true;
 		}
 
 		private Path getJsonPath() {
@@ -134,12 +136,20 @@ public class DiplomaticConversion {
 	public static void main(final String[] args) throws IOException {
 		logger.info(System.getProperties().toString());
 		
-		getDocuments()
+		Object[] failedConversions = getDocuments()
 			.flatMap(document -> document.transcripts())
 			.parallel()
 			.map(page -> page.writeTranscriptJson())
-			.forEach(page -> page.buildSVGs());
+			.filter(page -> page.buildSVGs())
+			.filter(page -> page.buildSVGs())
+			.filter(page -> page.buildSVGs())
+			.toArray();
 		
+		if (failedConversions.length > 0) {
+			logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed:\n {1}",
+					failedConversions.length, Joiner.on("\n ").join(failedConversions)));
+			System.exit(1);
+		}
 	}
 
 

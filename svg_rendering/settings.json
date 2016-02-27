@@ -5,13 +5,13 @@
     "pollInterval": 100
   },
   "rendering": {
-    "url": "http://127.0.0.1/new/page/transcript-generation.html"
+    "url": "http://127.0.0.1/faust-gen/transcript-generation.html"
   },
   "input": {
     "doc": {
-      "metadata": "/var/www/html/xml/document/",
-      "transcript": "/var/www/html/xml/transcript/",
-      "imageTextLink": "/var/www/html/xml/image-text-links/",
+      "metadata": "/home/tv/Faust/document/",
+      "transcript": "/home/tv/Faust/transcript/",
+      "imageTextLink": "/home/tv/Faust/image-text-links/",
       "facsimile": "/var/www/html/transcript/facsimile/"
     }
   },
