@@ -2,11 +2,13 @@ package net.faustedition.gen;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,6 +33,7 @@ import com.mycila.xmltool.XMLDocumentException;
 import com.mycila.xmltool.XMLTag;
 
 import de.faustedition.transcript.simple.SimpleTransform;
+import fi.iki.elonen.SimpleWebServer;
 
 public class DiplomaticConversion {
 
@@ -38,6 +41,7 @@ public class DiplomaticConversion {
 
 	public static Path root = Paths.get("/home/tv/Faust/");
 	public static Path target = Paths.get("target");
+	private static String serverURL;
 
 	public static class TranscriptPage {
 		public final Document document;
@@ -92,7 +96,7 @@ public class DiplomaticConversion {
 			logger.fine("Converting " + this);
 			final ArrayList<String> arguments = Lists.newArrayList(
 					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), "rendersvgs.js",
-					"http://localhost/faust-gen/transcript-generation.html", getJsonPath().toString(),
+					serverURL, getJsonPath().toString(),
 					target.resolve("transcripts").resolve("diplomatic").resolve(getPagePath("svg")).toString());
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
@@ -153,6 +157,14 @@ public class DiplomaticConversion {
 
 	public static void main(final String[] args) throws IOException {
 		logger.info(Joiner.on("\n").withKeyValueSeparator(": ").join(System.getProperties()));
+		
+		final SimpleWebServer webServer = new SimpleWebServer("localhost", 0, new File("svg_rendering/page"), true);
+		webServer.start(60, true);
+		try {
+			serverURL = new URL("http", "localhost", webServer.getListeningPort(), "/transcript-generation.html").toString();
+			logger.info(MessageFormat.format("Web server runs on {0}", serverURL));
+		
+		
 
 		final Object[] failedConversions = getDocuments()
 				.flatMap(document -> document.transcripts())
@@ -168,6 +180,10 @@ public class DiplomaticConversion {
 					failedConversions.length, Joiner.on("\n ").join(failedConversions)));
 			System.exit(1);
 		}
+		} finally {
+			webServer.stop();
+		}
+		
 	}
 
 	public static Path resolveFaustUri(final URI uri) {
