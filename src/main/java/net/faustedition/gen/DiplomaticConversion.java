@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +25,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerException;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.mycila.xmltool.XMLDoc;
 import com.mycila.xmltool.XMLDocumentException;
 import com.mycila.xmltool.XMLTag;
@@ -35,24 +38,26 @@ public class DiplomaticConversion {
 
 	public static Path root = Paths.get("/home/tv/Faust/");
 	public static Path target = Paths.get("target");
-	
+
 	public static class TranscriptPage {
 		public final Document document;
 		private final String page;
 		private final int pageNo;
-		
-		public TranscriptPage(Document document, String page, final int pageNo) {
+
+		public TranscriptPage(final Document document, final String page, final int pageNo) {
 			this.document = document;
 			this.page = page;
 			this.pageNo = pageNo;
 		}
-		
+
 		public Path source() {
 			return resolveFaustUri(document.base.resolve(page));
 		}
-		
+
 		private Path getPagePath(final String extension) {
-			return Paths.get(document.relPath.toString(), MessageFormat.format("page_{0}.{1}", pageNo, extension));
+			final Path relPath = document.relPath;
+			return Paths.get(relPath.subpath(1, relPath.getNameCount()).toString(),
+					MessageFormat.format("page_{0}.{1}", pageNo, extension));
 		}
 
 		public TranscriptPage writeTranscriptJson() {
@@ -67,26 +72,40 @@ public class DiplomaticConversion {
 			}
 			return this;
 		}
-		
+
+		public Optional<Path> getImageLinkPath() {
+			try {
+				final XMLTag transcript = XMLDoc.from(source().toFile()).deletePrefixes();
+				final XMLTag graphic = transcript.gotoTag("//graphic[@mimeType = 'image/svg+xml']");
+				return Optional.of(resolveFaustUri(URI.create(graphic.getAttribute("url"))));
+			} catch (final XMLDocumentException e) {
+				return Optional.empty();
+			}
+		}
+
 		@Override
 		public String toString() {
 			return MessageFormat.format("{0} page {1}: {2}", document.faustURI, pageNo, document.base.resolve(page));
 		}
-		
+
 		public boolean buildSVGs() {
-			logger.info("Converting " + this);
+			logger.fine("Converting " + this);
+			final ArrayList<String> arguments = Lists.newArrayList(
+					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), "rendersvgs.js",
+					"http://localhost/faust-gen/transcript-generation.html", getJsonPath().toString(),
+					target.resolve("transcripts").resolve("diplomatic").resolve(getPagePath("svg")).toString());
+			final Optional<Path> imageLinkPath = getImageLinkPath();
+			if (imageLinkPath.isPresent()) {
+				arguments.add(imageLinkPath.get().toString());
+				arguments.add(target.resolve("transcripts").resolve("overlay").resolve(getPagePath("svg")).toString());
+			} else {
+				logger.fine(this + " has no text-image-links");
+			}
+
 			try {
-				Process renderProcess = new ProcessBuilder(
-						System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"),
-//						"--debug=true",
-						"rendersvgs.js",
-						"http://localhost/faust-gen/transcript-generation.html",
-						getJsonPath().toString(),
-						target.resolve("transcripts").resolve("diplomatic").resolve(getPagePath("svg")).toString()
-						)
-					.redirectErrorStream(true)
-					.start();
-				BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
+				final Process renderProcess = new ProcessBuilder(arguments).redirectErrorStream(true).start();
+				final BufferedReader bufferedReader = new BufferedReader(
+						new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
 				bufferedReader.lines().forEach(line -> logger.warning(line));
 				return renderProcess.waitFor() != 0;
 			} catch (IOException | InterruptedException e) {
@@ -100,10 +119,8 @@ public class DiplomaticConversion {
 		}
 	}
 
-	
-	
 	public static class Document {
-		
+
 		private final Path path;
 		/** The base faust:// uri for the transcripts of this document */
 		public URI base;
@@ -114,17 +131,18 @@ public class DiplomaticConversion {
 
 		public Document(final Path path) {
 			this.path = path;
-			this.relPath = root.relativize(path);
-			this.faustURI = URI.create("faust://xml/" + relPath.toString());
+			relPath = root.relativize(path);
+			faustURI = URI.create("faust://xml/" + relPath.toString());
 		}
-		
+
 		public Stream<TranscriptPage> transcripts() {
 			try {
 				final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
 				base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
 				final Builder<TranscriptPage> builder = Stream.builder();
-				final OfInt pageNumbers = IntStream.iterate(1, i -> i+1).sequential().iterator();
-				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), pageNumbers.nextInt())), "//docTranscript[@uri]");
+				final OfInt pageNumbers = IntStream.iterate(1, i -> i + 1).sequential().iterator();
+				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), pageNumbers.nextInt())),
+						"//docTranscript[@uri]");
 				return builder.build();
 			} catch (final XMLDocumentException e) {
 				logger.log(Level.WARNING, path + ": XML extraction error", e);
@@ -134,17 +152,17 @@ public class DiplomaticConversion {
 	}
 
 	public static void main(final String[] args) throws IOException {
-		logger.info(System.getProperties().toString());
-		
-		Object[] failedConversions = getDocuments()
-			.flatMap(document -> document.transcripts())
-			.parallel()
-			.map(page -> page.writeTranscriptJson())
-			.filter(page -> page.buildSVGs())
-			.filter(page -> page.buildSVGs())
-			.filter(page -> page.buildSVGs())
-			.toArray();
-		
+		logger.info(Joiner.on("\n").withKeyValueSeparator(": ").join(System.getProperties()));
+
+		final Object[] failedConversions = getDocuments()
+				.flatMap(document -> document.transcripts())
+				.parallel()
+				.map(page -> page.writeTranscriptJson())
+				.filter(page -> page.buildSVGs())
+				.filter(page -> page.buildSVGs())
+				.filter(page -> page.buildSVGs())
+				.toArray();
+
 		if (failedConversions.length > 0) {
 			logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed:\n {1}",
 					failedConversions.length, Joiner.on("\n ").join(failedConversions)));
@@ -152,15 +170,12 @@ public class DiplomaticConversion {
 		}
 	}
 
-
-
 	public static Path resolveFaustUri(final URI uri) {
 		return root.resolve(uri.getPath().substring(1));
 	}
 
 	private static Stream<Document> getDocuments() throws IOException {
-		return Files.walk(root.resolve("document"))
-				.filter(path -> path.toString().endsWith(".xml"))
-				.map(path -> new Document(path));
+		return Files.walk(root.resolve("document")).filter(path -> path.toString().endsWith(".xml")).map(
+				path -> new Document(path));
 	}
 }
