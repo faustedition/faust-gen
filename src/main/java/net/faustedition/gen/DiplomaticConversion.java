@@ -39,7 +39,7 @@ public class DiplomaticConversion {
 
 	private static Logger logger = Logger.getLogger(DiplomaticConversion.class.getName());
 
-	public static Path root = Paths.get("/home/tv/Faust/");
+	public static Path root = Paths.get("data/xml/");
 	public static Path target = Paths.get("target");
 	private static String serverURL;
 
