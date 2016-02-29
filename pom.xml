@@ -116,22 +116,51 @@
 				<version>1.4.0</version>
 				<executions>
 					<execution>
+						<id>generate-svgs</id>
 						<goals>
-							<goal>java</goal>
+							<goal>exec</goal>
 						</goals>
 						<phase>prepare-package</phase>
 						<configuration>
-							<mainClass>net.faustedition.gen.DiplomaticConversion</mainClass>
-							<systemProperties>
-								<systemProperty>
-									<key>phantomjs.binary</key>
-									<value>${phantomjs.binary}</value>
-								</systemProperty>
-							</systemProperties>
+							<environmentVariables>
+								<LANG>en_US.UTF-8</LANG>
+								<LC_ALL>en_US.UTF-8</LC_ALL>
+							</environmentVariables>
+							<executable>java</executable>
+							<arguments>
+								<argument>-classpath</argument>
+								<classpath/>
+								<argument>-Dphantomjs.binary=${phantomjs.binary}</argument>
+								<argument>net.faustedition.gen.DiplomaticConversion</argument>
+							</arguments>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+			
+			<!--plugin>
+				<groupId>io.wcm.maven.plugins</groupId>
+				<artifactId>nodejs-maven-plugin</artifactId>
+				<version>2.0.0</version>
+				<executions>
+					<execution>
+						<id>generate-metadata</id>
+						<goals><goal>run</goal></goals>
+						<phase>prepare-package</phase>
+						<configuration>
+							<tasks>
+								<nodeJsTask>
+									<workingDirectory>metadata_generation</workingDirectory>
+									<executableName>node</executableName>
+									<arguments>
+										<argument>generate_metadata</argument>
+									</arguments>
+								</nodeJsTask>
+							</tasks>
+						</configuration>						
+					</execution>
+				</executions>				
+			</plugin-->
 			
 		</plugins>
 	</build>

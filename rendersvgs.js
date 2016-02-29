@@ -45,8 +45,8 @@ page.onCallback = function(result) {
 };
 
 page.open(backend, function(status) {
-  var transcript = fs.read(input),
-      imagelinks = links? fs.read(links) : undefined;
+  var transcript = fs.read(input, { mode: "r", charset: "UTF-8"}),
+      imagelinks = links? fs.read(links, {mode: "r", charset: "UTF-8"}) : undefined;
   
   function render(transcript, imagelinks) {
     transcriptGeneration.createToPhantom(transcript, imagelinks);
