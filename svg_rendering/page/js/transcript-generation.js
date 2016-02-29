@@ -8,8 +8,8 @@ var transcriptGeneration = (function(){
     var createRenderContainer = function() {
       var renderContainer = document.createElement("div");
 
-      renderContainer.style.height = "0px";
-      renderContainer.style.width = "0px";
+//      renderContainer.style.height = "0px";
+//      renderContainer.style.width = "0px";
 
       renderContainer.style.overflow = "hidden";
 
@@ -67,7 +67,7 @@ var transcriptGeneration = (function(){
           svgRoot.setAttribute("width", rootBBox.width);
           svgRoot.setAttribute("height", rootBBox.height);
 
-          document.body.removeChild(renderContainer);
+//          document.body.removeChild(renderContainer);
           callback(renderContainer.firstChild);
 
         }
@@ -128,7 +128,7 @@ var transcriptGeneration = (function(){
       facsimileOverlaySvg.setAttribute("viewBox", "0 0 " + textImageLinkSvg.getAttribute("width") + " " + textImageLinkSvg.getAttribute("height"));
       facsimileOverlaySvg.setAttribute("preserveAspectRatio", "xMinYMin meet");
 
-      document.body.removeChild(renderContainer);
+//      document.body.removeChild(renderContainer);
       facsimileOverlaySvg.style.position = "static";
       facsimileOverlaySvg.style.top = "auto";
       facsimileOverlaySvg.style.left = "auto";

@@ -41,6 +41,12 @@ page.onCallback = function(result) {
         out.close();
       }
 
+      out = fs.open(output + ".html", { mode: "w", charset: "UTF-8" });
+      out.write(page.content);
+      out.close();
+
+      page.render(output + ".pdf");
+
       phantom.exit();
 };
 
