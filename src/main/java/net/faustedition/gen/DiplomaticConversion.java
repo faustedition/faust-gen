@@ -110,7 +110,7 @@ public class DiplomaticConversion {
 				final Process renderProcess = new ProcessBuilder(arguments).redirectErrorStream(true).start();
 				final BufferedReader bufferedReader = new BufferedReader(
 						new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
-				bufferedReader.lines().forEach(line -> logger.warning(line));
+				bufferedReader.lines().forEach(line -> logger.warning(line + " (while converting " + this + ")"));
 				return renderProcess.waitFor() != 0;
 			} catch (IOException | InterruptedException e) {
 				logger.log(Level.SEVERE, "Failed to convert SVG for " + document.base.resolve(page), e);
