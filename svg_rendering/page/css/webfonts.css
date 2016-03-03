@@ -1,0 +1,111 @@
+@charset "utf-8";
+
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 400; /* regular */
+  src: url(../webfonts/Ubuntu-R.woff2) format('woff2'),
+       url(../webfonts/Ubuntu-R.woff) format('woff'),
+       url(../webfonts/Ubuntu-R.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: italic;
+  font-weight: 400; /* regular */
+  src: url(../webfonts/Ubuntu-RI.woff2) format('woff2'),
+       url(../webfonts/Ubuntu-RI.woff) format('woff'),
+       url(../webfonts/Ubuntu-RI.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: normal;
+  font-weight: 700; /* bold */
+  src: url(../webfonts/Ubuntu-B.woff2) format('woff2'),
+       url(../webfonts/Ubuntu-B.woff) format('woff'),
+       url(../webfonts/Ubuntu-B.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu';
+  font-style: italic;
+  font-weight: 700; /* bold */
+  src: url(../webfonts/Ubuntu-BI.woff2) format('woff2'),
+       url(../webfonts/Ubuntu-BI.woff) format('woff'),
+       url(../webfonts/Ubuntu-BI.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 400; /* regular */
+  src: url(../webfonts/ubuntumono-regular-webfont.woff2) format('woff2'),
+       url(../webfonts/ubuntumono-regular-webfont.woff) format('woff'),
+       url(../webfonts/ubuntumono-regular-webfont.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 400; /* regular */
+  src: url(../webfonts/ubuntumono-italic-webfont.woff2) format('woff2'),
+       url(../webfonts/ubuntumono-italic-webfont.woff) format('woff'),
+       url(../webfonts/ubuntumono-italic-webfont.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 700; /* bold */
+  src: url(../webfonts/ubuntumono-bold-webfont.woff2) format('woff2'),
+       url(../webfonts/ubuntumono-bold-webfont.woff) format('woff'),
+       url(../webfonts/ubuntumono-bold-webfont.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 700; /* bold */
+  src: url(../webfonts/ubuntumono-bolditalic-webfont.woff2) format('woff2'),
+       url(../webfonts/ubuntumono-bolditalic-webfont.woff) format('woff'),
+       url(../webfonts/ubuntumono-bolditalic-webfont.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'FontAwesome';
+  font-style: normal;
+  font-weight: normal;
+  src: url(../webfonts/fontawesome-webfont.woff2?v=4.4.0) format('woff2'),
+       url(../webfonts/fontawesome-webfont.woff?v=4.4.0) format('woff'),
+       url(../webfonts/fontawesome-webfont.ttf?v=4.4.0) format('truetype');
+}
+
+
+@font-face {
+  font-family: 'faust-serif';
+  font-style: normal;
+  font-weight: 400; /* regular */
+  src: url(../webfonts/GenBkBasR.woff2) format('woff2'),
+       url(../webfonts/GenBkBasR.woff) format('woff'),
+       url(../webfonts/GenBkBasR.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'faust-serif';
+  font-style: italic;
+  font-weight: 400; /* regular */
+  src: url(../webfonts/GenBkBasI.woff2) format('woff2'),
+       url(../webfonts/GenBkBasI.woff) format('woff'),
+       url(../webfonts/GenBkBasI.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'faust-serif';
+  font-style: normal;
+  font-weight: 700; /* bold */
+  src: url(../webfonts/GenBkBasB.woff2) format('woff2'),
+       url(../webfonts/GenBkBasB.woff) format('woff'),
+       url(../webfonts/GenBkBasB.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'faust-serif';
+  font-style: italic;
+  font-weight: 700; /* bold */
+  src: url(../webfonts/GenBkBasBI.woff2) format('woff2'),
+       url(../webfonts/GenBkBasBI.woff) format('woff'),
+       url(../webfonts/GenBkBasBI.ttf) format('truetype');
+}
+
