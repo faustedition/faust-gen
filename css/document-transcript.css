@@ -1,13 +1,5 @@
 /* diplomatic transcript */
 
-/* custom fonts */
-
-@font-face {
-  font-family: faust-monospace;
-  src: url(../fonts/UbuntuMono-Regular.ttf) format("truetype");
-}
-
-
 /* global */
 
 svg.diplomatic {
@@ -76,7 +68,7 @@ svg.diplomatic .text.hand-g {
 }
 
 svg.diplomatic .text.hand-xx {
-	font-family: faust-monospace, monospace, Symbola;
+	font-family: "Ubuntu Monospace", monospace, Symbola;
 }
 
 /* writing material  */
