@@ -47,6 +47,12 @@
 			</snapshots>
 		</repository>
 
+		<repository>
+			<id>maven-restlet</id>
+			<name>Public online Restlet repository</name>
+			<url>http://maven.restlet.com</url>
+		</repository>
+		
 
 	</repositories>
 
@@ -67,6 +73,28 @@
 			<groupId>de.faustedition</groupId>
 			<artifactId>faust</artifactId>
 			<version>1.4-SNAPSHOT</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>org.restlet</artifactId>
+					<groupId>org.restlet.jse</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.restlet.ext.xml</artifactId>
+					<groupId>org.restlet.jse</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.restlet.ext.simple</artifactId>
+					<groupId>org.restlet.jse</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.restlet.ext.freemarker</artifactId>
+					<groupId>org.restlet.jse</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.restlet.ext.json</artifactId>
+					<groupId>org.restlet.jse</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.mycila</groupId>
