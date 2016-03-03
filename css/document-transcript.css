@@ -3,11 +3,6 @@
 /* custom fonts */
 
 @font-face {
-  font-family: faust-serif;
-  src: url(../fonts/GenBkBasR.ttf) format("truetype");
-}
-
-@font-face {
   font-family: faust-monospace;
   src: url(../fonts/UbuntuMono-Regular.ttf) format("truetype");
 }
