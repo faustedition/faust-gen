@@ -97,11 +97,11 @@ public class DiplomaticConversion {
 			final ArrayList<String> arguments = Lists.newArrayList(
 					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), "rendersvgs.js",
 					serverURL, getJsonPath().toString(),
-					target.resolve("transcripts").resolve("diplomatic").resolve(getPagePath("svg")).toString());
+					target.resolve("transcript").resolve("diplomatic").resolve(getPagePath("svg")).toString());
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
 				arguments.add(imageLinkPath.get().toString());
-				arguments.add(target.resolve("transcripts").resolve("overlay").resolve(getPagePath("svg")).toString());
+				arguments.add(target.resolve("transcript").resolve("overlay").resolve(getPagePath("svg")).toString());
 			} else {
 				logger.fine(this + " has no text-image-links");
 			}
@@ -156,8 +156,6 @@ public class DiplomaticConversion {
 	}
 
 	public static void main(final String[] args) throws IOException {
-		logger.info(Joiner.on("\n").withKeyValueSeparator(": ").join(System.getProperties()));
-		
 		final SimpleWebServer webServer = new SimpleWebServer("localhost", 0, new File("svg_rendering/page"), true);
 		webServer.start(60, true);
 		try {
