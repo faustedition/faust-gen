@@ -208,5 +208,52 @@
 				</plugins>
 			</build>
 		</profile>
+		
+		<profile>
+			<id>xproc</id>
+			<activation><activeByDefault>true</activeByDefault></activation>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/xproc</directory>
+						<filtering>false</filtering>
+						<targetPath>${project.build.directory}/xproc</targetPath>
+						<excludes><exclude>config.xml</exclude></excludes>						
+					</resource>
+					<resource>
+						<directory>src/main/xproc-config</directory>
+						<filtering>true</filtering>
+						<targetPath>${project.build.directory}/xproc</targetPath>
+					</resource>
+				</resources>
+				
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals><goal>java</goal></goals>
+								<phase>compile</phase>
+								<configuration>									
+									<mainClass>com.xmlcalabash.drivers.Main</mainClass>
+									<commandlineArgs>${project.build.directory}/xproc/generate-all.xpl</commandlineArgs>
+									<systemProperties>
+										<systemProperty>
+											<key>com.xmlcalabash.debug</key>
+											<value>false</value>
+										</systemProperty>
+										<systemProperty>
+											<key>log4j.configurationFile</key>
+											<value>${project.basedir}/src/resources/log4j2.xml</value>
+										</systemProperty>
+									</systemProperties>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 </project>
