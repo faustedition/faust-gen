@@ -210,6 +210,25 @@
 		</profile>
 		
 		<profile>
+			<id>sources</id>
+			<activation><activeByDefault>true</activeByDefault></activation>
+			<build>
+				<resources>
+					<resource>
+						<directory>data/xml</directory>
+						<filtering>false</filtering>
+						<targetPath>${project.build.directory}/www/xml</targetPath>
+					</resource>
+					<resource>
+						<directory>src/main/web</directory>
+						<filtering>false</filtering>
+						<targetPath>${project.build.directory}/www</targetPath>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+		
+		<profile>
 			<id>xproc</id>
 			<activation><activeByDefault>true</activeByDefault></activation>
 			<build>
@@ -235,7 +254,11 @@
 							<execution>
 								<goals><goal>java</goal></goals>
 								<phase>compile</phase>
-								<configuration>									
+								<configuration>								
+									<!-- executableDependency>
+										<groupId>com.xmlcalabash</groupId>
+										<artifactId>xmlcalabash</artifactId>
+									</executableDependency-->	
 									<mainClass>com.xmlcalabash.drivers.Main</mainClass>
 									<commandlineArgs>${project.build.directory}/xproc/generate-all.xpl</commandlineArgs>
 									<systemProperties>
