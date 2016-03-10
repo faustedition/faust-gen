@@ -97,11 +97,11 @@ public class DiplomaticConversion {
 			final ArrayList<String> arguments = Lists.newArrayList(
 					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), "rendersvgs.js",
 					serverURL, getJsonPath().toString(),
-					target.resolve("transcript").resolve("diplomatic").resolve(getPagePath("svg")).toString());
+					target.resolve("www").resolve("transcript").resolve("diplomatic").resolve(getPagePath("svg")).toString());
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
 				arguments.add(imageLinkPath.get().toString());
-				arguments.add(target.resolve("transcript").resolve("overlay").resolve(getPagePath("svg")).toString());
+				arguments.add(target.resolve("www").resolve("transcript").resolve("overlay").resolve(getPagePath("svg")).toString());
 			} else {
 				logger.fine(this + " has no text-image-links");
 			}
