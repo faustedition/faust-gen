@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<c:param-set xmlns:c="http://www.w3.org/ns/xproc-step">
+
+	<!--URL to the root folder of the Faust Edition's XML files-->
+	<c:param name="source" value="file:${project.basedir}/data/xml/"/>
+
+	<!-- Target folder for everything that is not specified in more detail below -->
+	<c:param name="builddir" value="${project.build.directory}/"/>
+
+	<!-- Path to the target folder for the "root" HTML files-->
+	<c:param name="html" value="${project.build.directory}/www/print/"/>
+
+	<!-- Path to the target folder for the "apparatus" HTML files-->
+	<c:param name="apphtml" value="${project.build.directory}/www/app/"/>
+	
+	<!-- Path to the target folder for the metadata HTML fragments -->
+	<c:param name="metahtml" value="${project.build.directory}/www/meta/"/>
+
+	<!-- Path to the target folder for the variant fragments -->
+	<c:param name="variants" value="${project.build.directory}/www/print/variants/"/>
+	
+	<!-- URL prefix to be used for links into the document viewer (transcripts etc.) -->
+	<c:param name="docbase" value="/documentViewer?faustUri=faust://xml"/>
+	
+	<!-- URL prefix to be used for links into the print and lesetext folder -->
+	<c:param name="printbase" value="/print/"/>
+
+	<!-- Optional settings for producing documents that are not integrated
+	     with the rest. Can be left commented out. 
+
+	<!-\- Base link to the edition. Used in html-frame. Defaults to .. -->
+	<c:param name="edition" value=""/>
+
+	<!-- Base link to the js, css, img subfolders. Defaults to $edition. -\->
+	<c:param name="assets" value="assets"/>
+
+	<!-\- If given, include a timestamp and the Testhandschrift. -->
+	<c:param name="debug" value="false"/>
+
+		
+	<!-- Parameters for splitting the text visualisation: -->
+	<!-- max. div nesting depth to split. 2 = Acts + Scenes -->
+	<c:param name="depth" value="2"/>	
+	<!-- split only if the source XML contains more then this many <div>s in total -->
+	<c:param name="splitdivs" value="5"/>
+	<c:param name="splitchars" value="5000"/>
+
+</c:param-set>
