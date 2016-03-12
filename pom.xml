@@ -8,6 +8,7 @@
 	
 	<properties>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
+		<upload.url>rsync:beta.faustedition.net:/var/www/dev</upload.url>
 	</properties>
 
 	<repositories>
@@ -115,6 +116,13 @@
 	
 	
 	<build>
+		<extensions>
+			<extension>
+				<groupId>com.pcl-solutions.maven.wagons</groupId>
+				<artifactId>rsync-maven-wagon</artifactId>
+				<version>1.0</version>
+			</extension>  
+		</extensions>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -126,31 +134,30 @@
 				</configuration>
 			</plugin>
 			
-			
-			<!--plugin>
-				<groupId>io.wcm.maven.plugins</groupId>
-				<artifactId>nodejs-maven-plugin</artifactId>
-				<version>2.0.0</version>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
+				<version>1.0</version>
+				
 				<executions>
 					<execution>
-						<id>generate-metadata</id>
-						<goals><goal>run</goal></goals>
-						<phase>prepare-package</phase>
+						<phase>deploy</phase>
+						<goals><goal>upload</goal></goals>
 						<configuration>
-							<tasks>
-								<nodeJsTask>
-									<workingDirectory>metadata_generation</workingDirectory>
-									<executableName>node</executableName>
-									<arguments>
-										<argument>generate_metadata</argument>
-									</arguments>
-								</nodeJsTask>
-							</tasks>
-						</configuration>						
+							<fromDir>${project.build.directory}/www</fromDir>
+							<url>${upload.url}</url>
+							<toDir>/var/www/dev</toDir>
+						</configuration>
 					</execution>
-				</executions>				
-			</plugin-->
-			
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	
@@ -278,5 +285,6 @@
 				</plugins>
 			</build>
 		</profile>
+		
 	</profiles>
 </project>
