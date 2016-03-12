@@ -41,13 +41,13 @@ page.onCallback = function(result) {
         out.close();
       }
 
-      out = fs.open(output + ".html", { mode: "w", charset: "UTF-8" });
+      /* out = fs.open(output + ".html", { mode: "w", charset: "UTF-8" });
       out.write(page.content);
       out.close();
       
       page.evaluate(function() {document.getElementsByTagName('body')[0].style.zoom = 0.62;});
       page.paperSize = "A4";
-      page.render(output + ".pdf");
+      page.render(output + ".pdf"); */
 
       phantom.exit();
 };
