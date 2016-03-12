@@ -8,8 +8,8 @@ var transcriptGeneration = (function(){
     var createRenderContainer = function() {
       var renderContainer = document.createElement("div");
 
-      renderContainer.style.height = "0px";
-      renderContainer.style.width = "0px";
+//      renderContainer.style.height = "0px";
+//      renderContainer.style.width = "0px";
 
       renderContainer.style.overflow = "hidden";
 
@@ -23,6 +23,7 @@ var transcriptGeneration = (function(){
     return createRenderContainer;
   })();
 
+
   transcriptGeneration.createDiplomaticSvg = (function() {
     var iterations = 15;
     var timeout = 5;
@@ -30,6 +31,11 @@ var transcriptGeneration = (function(){
     var createDiplomaticSvg = function(diplomaticTranscriptString, callback) {
     
       var diplomaticTranscriptJson = JSON.parse(diplomaticTranscriptString);
+      if (diplomaticTranscriptString === undefined) {
+        throw "Argument is undefined!";
+      } else if (diplomaticTranscriptJson === undefined) {
+        throw "JSON parsing failed!";
+      }
 
       var renderContainer = createRenderContainer();
       document.body.appendChild(renderContainer);
@@ -61,9 +67,9 @@ var transcriptGeneration = (function(){
           svgRoot.setAttribute("width", rootBBox.width);
           svgRoot.setAttribute("height", rootBBox.height);
 
-          document.body.removeChild(renderContainer);
-
+//          document.body.removeChild(renderContainer);
           callback(renderContainer.firstChild);
+
         }
       };
 
@@ -122,7 +128,7 @@ var transcriptGeneration = (function(){
       facsimileOverlaySvg.setAttribute("viewBox", "0 0 " + textImageLinkSvg.getAttribute("width") + " " + textImageLinkSvg.getAttribute("height"));
       facsimileOverlaySvg.setAttribute("preserveAspectRatio", "xMinYMin meet");
 
-      document.body.removeChild(renderContainer);
+//      document.body.removeChild(renderContainer);
       facsimileOverlaySvg.style.position = "static";
       facsimileOverlaySvg.style.top = "auto";
       facsimileOverlaySvg.style.left = "auto";
@@ -131,6 +137,29 @@ var transcriptGeneration = (function(){
 
     return createFacsimileOverlaySvg;
   })();
+
+
+  function serialize(node) {
+          var serializer = new XMLSerializer(),
+              serializedSvg = serializer.serializeToString(node).replace(/&nbsp;/g, '&#160;');
+          return serializedSvg;
+  };
+
+
+  transcriptGeneration.createToPhantom = function createToPhantom(transcript, links) {
+    transcriptGeneration.createDiplomaticSvg(transcript, function(diploSvg) {
+      var result = { svg: serialize(diploSvg), overlay: undefined };
+      if (links) {
+        var overlaySvg = transcriptGeneration.createFacsimileOverlaySvg(diploSvg, links);
+        result.overlay = serialize(overlaySvg);
+      }
+      try {
+        window.callPhantom(result);
+      } catch (e) {
+        console.log("Phantom callback failed: ", e);
+      }
+    });
+  }
 
   return transcriptGeneration;
 })();

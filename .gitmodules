@@ -1,0 +1,9 @@
+[submodule "data"]
+	path = data
+	url = wrzh074.rzhousing.uni-wuerzburg.de:/mnt/data/htdocs/.git
+[submodule "src/main/xproc"]
+	path = src/main/xproc
+	url = git://github.com/faustedition/faust-gen-html.git
+[submodule "src/main/web"]
+	path = src/main/web
+	url = git://github.com/faustedition/faust-web

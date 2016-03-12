@@ -1,28 +1,5 @@
 /* diplomatic transcript */
 
-/* custom fonts */
-
-@font-face {
-  font-family: faust-serif;
-  src: url(../fonts/GenBkBasR.ttf) format("truetype");
-}
-
-/*@font-face {*/
-  /*font-family: faust-sans-serif;*/
-  /*src: url(../fonts/RopaSans-Regular.ttf) format("truetype");*/
-/*}*/
-
-@font-face {
-    font-family: faust-sans-serif;
-    src: url(../fonts/Ubuntu-R.ttf) format("truetype");
-}
-
-@font-face {
-  font-family: faust-monospace;
-  src: url(../fonts/UbuntuMono-Regular.ttf) format("truetype");
-}
-
-
 /* global */
 
 svg.diplomatic {
@@ -67,7 +44,7 @@ svg.diplomatic g.Zone:hover {
 
 svg.diplomatic .text {
     font-size: 11pt;
-    font-family: faust-sans-serif, sans-serif, Symbola;
+    font-family: Ubuntu, Symbola;
     fill: black;
     stroke: none;
     stroke-opacity: 0;
@@ -91,7 +68,7 @@ svg.diplomatic .text.hand-g {
 }
 
 svg.diplomatic .text.hand-xx {
-	font-family: faust-monospace, monospace, Symbola;
+	font-family: "Ubuntu Mono", Symbola;
 }
 
 /* writing material  */
