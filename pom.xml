@@ -139,7 +139,10 @@
 						<configuration>
 							<executable>rsync</executable>
 							<arguments>
-								<argument>-au</argument>
+								<argument>-a</argument>
+								<argument>-u</argument>
+								<argument>--chmod=ug+rwX,o+rX,Dg+s</argument>
+								<argument>--omit-dir-times</argument>
 								<argument>--info=del,stats2,copy,flist2,progress2</argument>
 								<argument>${project.build.directory}/www/</argument>
 								<argument>${upload.url}</argument>
