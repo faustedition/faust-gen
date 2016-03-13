@@ -9,6 +9,7 @@
 	<properties>
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<upload.url>beta.faustedition.net:/var/www/dev</upload.url>
+		<faust.diplo.allowedFailures>10</faust.diplo.allowedFailures>
 	</properties>
 
 	<repositories>
@@ -210,6 +211,7 @@
 										<argument>-classpath</argument>
 										<classpath/>
 										<argument>-Dphantomjs.binary=${phantomjs.binary}</argument>
+										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
 										<argument>net.faustedition.gen.DiplomaticConversion</argument>
 									</arguments>
 								</configuration>

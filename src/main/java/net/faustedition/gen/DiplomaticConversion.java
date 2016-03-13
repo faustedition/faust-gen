@@ -176,7 +176,13 @@ public class DiplomaticConversion {
 		if (failedConversions.length > 0) {
 			logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed:\n {1}",
 					failedConversions.length, Joiner.on("\n ").join(failedConversions)));
-			System.exit(1);
+			int allowedFailures = Integer.parseUnsignedInt(System.getProperty("faust.diplo.allowedFailures", "0"));
+			if (failedConversions.length > allowedFailures) {
+				logger.log(Level.SEVERE, MessageFormat.format("These are more than the {0} tolerated failures.", allowedFailures));
+				System.exit(1);
+			} else {
+				logger.log(Level.INFO, MessageFormat.format("Up to {0} failures are tolerated.", allowedFailures));
+			}
 		}
 		} finally {
 			webServer.stop();
