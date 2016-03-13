@@ -95,6 +95,10 @@
 					<artifactId>org.restlet.ext.json</artifactId>
 					<groupId>org.restlet.jse</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>logback-classic</artifactId>
+					<groupId>ch.qos.logback</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
