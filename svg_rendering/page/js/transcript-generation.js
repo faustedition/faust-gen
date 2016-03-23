@@ -152,6 +152,7 @@ var transcriptGeneration = (function(){
       if (links) {
         var overlaySvg = transcriptGeneration.createFacsimileOverlaySvg(diploSvg, links);
         result.overlay = serialize(overlaySvg);
+        overlaySvg.parentNode.removeChild(overlaySvg);
       }
       try {
         window.callPhantom(result);
