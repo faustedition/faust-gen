@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <link rel="stylesheet" href="css/webfonts.css">
+    <link rel="stylesheet" href="css/document-text.css">
+    <link rel="stylesheet" href="css/document-transcript.css">
+    <link rel="stylesheet" href="css/document-transcript-highlight-hands.css">
+    <link rel="stylesheet" href="css/document-transcript-interaction.css">
+    <link rel="stylesheet" href="css/pure-custom.css">
+    <link rel="stylesheet" href="css/basic_layout.css">
+
+    <script type="text/javascript" src="./js/Y_extract.js"></script>
+    <script type="text/javascript" src="./js/svg-utils.js"></script>
+    <script type="text/javascript" src="./js/faust.js"></script>
+    <script type="text/javascript" src="./js/materialunit.js"></script>
+    <script type="text/javascript" src="./js/transcript-adhoc-tree.js"></script>
+    <script type="text/javascript" src="./js/text-index.js"></script>
+    <script type="text/javascript" src="./js/text-annotation.js"></script>
+    <script type="text/javascript" src="./js/transcript.js"></script>
+    <script type="text/javascript" src="./js/transcript-svg.js"></script>
+    <script type="text/javascript" src="./js/adhoc-tree.js"></script>
+    <script type="text/javascript" src="./js/transcript-configuration-faust.js"></script>
+    <script type="text/javascript" src="./js/transcript-generation.js"></script>
+
+    <style>
+      *, *:before, *:after {
+        -webkit-box-sizing: border-box;
+           -moz-box-sizing: border-box;
+                box-sizing: border-box;
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0px 0px 0px 0px;
+        padding: 5px;
+        /* background-color: lightgray; */
+      }
+
+      /*
+      #container {
+        border: 1px solid black;
+        background-color: white;
+      }
+      */
+
+    </style>
+  </head>
+  <body>
+    <div id="container">
+    </div>
+
+    <script type="text/javascript">
+      var parseQueryString = function( queryString ) {
+        var params = {}, queries, temp, i, l;
+
+        // Split into key/value pairs
+        queries = queryString.split("&");
+
+        // Convert the array of strings into an object
+        for ( i = 0, l = queries.length; i < l; i++ ) {
+          temp = queries[i].split('=');
+          params[temp[0]] = temp[1];
+        }
+
+        return params;
+      };
+      var params = parseQueryString(window.location.search.substring(1));
+      console.log(params);
+      var json = params.faustUri.replace(/^faust:\/\/xml\/document/, 'json') + '/page_' + params.page + '.json';
+      console.log(json);
+      Faust.io(json, transcriptGeneration.createDiplomaticSvg);
+    </script>
+  </body>
+</html>

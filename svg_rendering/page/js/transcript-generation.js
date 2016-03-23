@@ -30,7 +30,7 @@ var transcriptGeneration = (function(){
 
     var createDiplomaticSvg = function(diplomaticTranscriptString, callback) {
     
-      var diplomaticTranscriptJson = JSON.parse(diplomaticTranscriptString);
+      var diplomaticTranscriptJson = typeof(diplomaticTranscriptString) === "object"? diplomaticTranscriptString : JSON.parse(diplomaticTranscriptString);
       if (diplomaticTranscriptString === undefined) {
         throw "Argument is undefined!";
       } else if (diplomaticTranscriptJson === undefined) {
