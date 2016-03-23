@@ -49,6 +49,12 @@
   <body>
     <div id="container">
     </div>
+    <section id="debughelp">
+      <h1>Transcript Generation Debugging</h1>
+      <p>This page helps in debugging the generation of the transcript generation. Just replace the <code>documentViewer</code> URL with the one to this HTML, retaining at least the faustUri and page parameters, and use the developer tools (F12).</p>
+      <p>Note this will work (1) only if served by a server and (2) only when the json files are there, i.e. generation has run at least once.</p>
+
+    </section>
 
     <script type="text/javascript">
       var parseQueryString = function( queryString ) {
@@ -69,6 +75,8 @@
       console.log(params);
       var json = params.faustUri.replace(/^faust:\/\/xml\/document/, 'json') + '/page_' + params.page + '.json';
       console.log(json);
+      var help = document.getElementById("debughelp");
+      help.parentNode.removeChild(help);
       Faust.io(json, transcriptGeneration.createDiplomaticSvg);
     </script>
   </body>
