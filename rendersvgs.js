@@ -44,10 +44,11 @@ page.onCallback = function(result) {
       /* out = fs.open(output + ".html", { mode: "w", charset: "UTF-8" });
       out.write(page.content);
       out.close();
-      
+      */
       page.evaluate(function() {document.getElementsByTagName('body')[0].style.zoom = 0.62;});
-      page.paperSize = "A4";
-      page.render(output + ".pdf"); */
+      page.paperSize = { format: "A4", orientation: "portrait", margin: "6pt" };
+      page.render(output.replace(/.svg$/, ".pdf")); 
+      page.render(output.replace(/.svg$/, ".png")); 
 
       phantom.exit();
 };
