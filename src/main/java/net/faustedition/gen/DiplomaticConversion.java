@@ -16,10 +16,8 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.PrimitiveIterator.OfInt;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
@@ -144,8 +142,7 @@ public class DiplomaticConversion {
 				final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
 				base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
 				final Builder<TranscriptPage> builder = Stream.builder();
-				final OfInt pageNumbers = IntStream.iterate(1, i -> i + 1).sequential().iterator();
-				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), pageNumbers.nextInt())),
+				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), tag.rawXpathNumber("count(preceding::page)").intValue()+1)),
 						"//docTranscript[@uri]");
 				return builder.build();
 			} catch (final XMLDocumentException e) {
