@@ -298,5 +298,43 @@
 			</build>
 		</profile>
 		
+		<profile>
+			<id>debug-rendering</id>
+			<activation><activeByDefault>true</activeByDefault></activation>
+			<build>
+				<resources>
+					<resource>
+						<directory>svg_rendering/page</directory>
+						<targetPath>${project.build.directory}/www</targetPath>
+						<includes>
+							<include>debug.html</include>
+							<include>js-gen/**</include>
+						</includes>
+					</resource>
+				</resources>
+				<plugins>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.7</version>
+						<executions>
+							<execution>
+								<id>copy-debug-data</id>
+								<phase>package</phase>
+								<goals><goal>copy-resources</goal></goals>
+								<configuration>
+									<resources>
+										<resource>
+											<directory>${project.build.directory}/pages</directory>
+										</resource>
+									</resources>
+									<outputDirectory>${project.build.directory}/www/json</outputDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		
 	</profiles>
 </project>
