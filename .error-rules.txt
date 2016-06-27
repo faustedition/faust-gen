@@ -1,4 +1,4 @@
 error /ERROR/
 error /SEVERE/
 warning /WARNING/
-start /[INFO] --- [^(]* \((.*?)\) @ .* ---/
+start /--- .* \((.*?)\) @ .* ---/
