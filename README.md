@@ -1,38 +1,62 @@
-# faust-gen
+## Faust data generation
 
-Generate static assets (diplomatic transcript SVGs, image tiles) for the Faust edition from XML sources and full-resolution images.
+The Faust-Edition web application builds on data that is automatically pre-generated from the original XML files. This project integrates the various generation and upload processes (except for the images, actually).
 
-## Installation
+## Basic Usage
 
-Download the source files. Node.js, Chrome / Chromium, Java, and a local web
-server are required to run them.
+Clone the project and all submodules and run `mvn clean package`.
 
-## Usage 
+## Dependencies
 
-### Diplomatic transcript SVGs
+Maven ≥ 3.2 and Java ≥ 8 are required. 
 
-The scripts for generating the diplomatic transcripts are in the subfolder [svg_rendering](svg_rendering). To prepare
+For the `deploy` step, you need a local rsync and make sure we can build a ssh connection to the target server (e.g., by providing an SSH agent with an unlocked key).
 
-* put the Faust XML sources somewhere on the local hard disk
-* configure a local web server such that it serves the [page](svg_rendering/page) subdirectory
-* adapt the paths in <code>settings.json</code>
+## Advanced usage
 
-Then, execute the following steps (or conveniently run [svg_rendering/generate-svgs.sh](svg_rendering/generate-svgs.sh))
+The build uses _profiles_ to select the parts that should run. The profile `svg` (`mvn -Psvg package`) runs the SVG generation, the profile `xproc` the XProc stuff. Everything is on by default, so just running `mvn clean package` will generate the whole site (except images) in `target/www`
 
-* start Chromium in background, using `9222` as debugging port:
+## Components
 
-```sh
-Xvfb :1000 -screen 0 1920x1080x24 +extension RANDR &
-DISPLAY=:1000 fluxbox &
-DISPLAY=:1000 chromium --user-data-dir=/path/to/debug/instance/profile/dir --remote-debugging-port=9222 -start-maximized &
-```
+### Diplomatic transcripts: SVG generation
 
-* Run <code>node preprocessing.js</code>
+The diplomatic transcripts are rendered page by page using JavaScript in a simulated browser. 
 
-### Metadata generation
+The code that does the actual rendering can be found in <svg_rendering/page>. This folder contains a simple web page, with font resources etc. pulled in from faust-web, plus the rendering code mainly developed by Moritz Wissenbach in <svg_rendering/page/js_gen>. 
 
-To generate metadata for the `data` subdirectory of faust-web, adapt the paths in [settings.json](metadata_generation/settings.json) and run
+To create both the diplomatic transcript and the overlay transcript for a single page, <rendersvgs.js> is called using [PhantomJS](http://phantomjs.org/), which will load <svg_rendering/page> in its simulated browser, trigger the rendering scripts there, and then extract and store the rendered SVGs.
 
-    node generate_metadata.js
+The JS does not directly work with the XML transcripts. Instead, each page needs to be transformed to a JSON representation, which is done using code from https://github.com/faustedition/faust-app, which is pulled in as a Maven dependency. The Java program at <src/main/java/net/faustedition/gen/DiplomaticConversion.java> is used to run the actual pipeline, i.e. iterate through the manuscripts and their pages, convert stuff to JSON, and run <rendersvgs.js> on each of these JSON files. Intermediate results (i.e. JSON files) and, if enabled, debugging data (e.g., PDFs) are written to the target directory.
 
-## License
+The process might well take 1.5h, it is bound to the `svg` profile.
+
+### Textual transcripts, metadata, and overview data
+
+Basically all other data that depends on the source data is generated using the https://github.com/faustedition/faust-gen-html project, which is cloned as a submodule to `src/main/xproc`. This includes:
+
+* an emended XML version of all textual transcripts as TEI
+* a reading version, and a line-wise apparatus out of this version
+* an inline apparatus _(Einblendungsapparat)_ for all textual transcripts as HTML
+* an HTML version of the metadata, and the project's bibliography
+* the JSON basis for the genesis bar graph
+* various other JSON data used by the web application
+
+This process takes around 1/2h, it is bound to the xproc profile. You can run individual parts from within that project, look at its documentation. Intermediate and generated files are put in the `target` directory.
+
+### Web application, and putting it all together
+
+The web application, i.e. all non-generated code, is pulled in from http://github.com/faustedition/faust-web as submodule `src/main/web`. 
+
+<pom.xml> contains code to actually run this all, and copy stuff around. Afterwards, the complete web site (except for the digitized manuscripts) can be found at `target/www`. If you run the `deploy` phase, it is rsynced to the server.
+
+## Semiautomatical stuff
+
+There are two steps that involve pulling in data from the internal wiki:
+
+* The table of testimonies, generated using <get_testimonies.py> and saved to `src/main/web/archive_testimonies.php`
+* The input file for the bibliography, see faust-gen-html
+
+## Not integrated yet
+
+* filling the eXist instance, see the scripts in faust-gen-html
+* preparing the facsimiles, see convert.sh 
