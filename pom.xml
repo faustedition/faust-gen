@@ -55,6 +55,10 @@
 			<url>http://maven.restlet.com</url>
 		</repository>
 		
+	    <repository>
+	      <id>exist</id>
+	      <url>https://raw.github.com/eXist-db/mvn-repo/master/</url>
+	    </repository>		
 
 	</repositories>
 
@@ -117,6 +121,7 @@
 			<artifactId>xmlcalabash</artifactId>
 			<version>1.1.9-96</version>
 		</dependency>
+		
 	</dependencies>
 	
 	
@@ -169,7 +174,7 @@
 					</execution>
 				</executions>
 			</plugin>
-		</plugins>
+		</plugins>		
 	</build>
 	
 	<profiles>
@@ -331,6 +336,48 @@
 								</configuration>
 							</execution>
 						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		
+		<profile>
+			<id>exist</id>
+			<properties>
+				<exist.uri>xmldb:exist://localhost:8080/exist/xmlrpc/db</exist.uri>
+				<exist.user>admin</exist.user>
+				<exist.pass>geheim</exist.pass>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.exist-db</groupId>
+					<artifactId>exist-core</artifactId>
+					<version>3.0.RC1</version>			
+				</dependency>
+				<dependency>
+					<groupId>org.exist-db</groupId>
+					<artifactId>exist-optional</artifactId>
+					<version>3.0.RC1</version>			
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<configuration>
+							<target xmlns:xdb="http://exist-db.org/ant">
+								<taskdef name="store" classname="org.exist.ant.XMLDBStoreTask"
+									classpathref="maven.compile.classpath" />
+								<store uri="${exist.uri}/faust" user="${exist.user}" password="${exist.pass}"
+									createcollection="true" createsubcollections="true">
+									<fileset dir="${project.build.directory}/search/textTranscript">
+										<include name="**/*.xml" />
+									</fileset>
+								</store>
+							</target>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>
