@@ -312,7 +312,7 @@
 						<directory>svg_rendering/page</directory>
 						<targetPath>${project.build.directory}/www</targetPath>
 						<includes>
-							<include>debug.html</include>
+							<include>debug*.html</include>
 							<include>js-gen/**</include>
 						</includes>
 					</resource>

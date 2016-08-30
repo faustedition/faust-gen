@@ -10,18 +10,7 @@
     <link rel="stylesheet" href="css/pure-custom.css">
     <link rel="stylesheet" href="css/basic_layout.css">
 
-    <script type="text/javascript" src="./js-gen/Y_extract.js"></script>
-    <script type="text/javascript" src="./js-gen/svg-utils.js"></script>
-    <script type="text/javascript" src="./js-gen/faust.js"></script>
-    <script type="text/javascript" src="./js-gen/materialunit.js"></script>
-    <script type="text/javascript" src="./js-gen/transcript-adhoc-tree.js"></script>
-    <script type="text/javascript" src="./js-gen/text-index.js"></script>
-    <script type="text/javascript" src="./js-gen/text-annotation.js"></script>
-    <script type="text/javascript" src="./js-gen/transcript.js"></script>
-    <script type="text/javascript" src="./js-gen/transcript-svg.js"></script>
-    <script type="text/javascript" src="./js-gen/adhoc-tree.js"></script>
-    <script type="text/javascript" src="./js-gen/transcript-configuration-faust.js"></script>
-    <script type="text/javascript" src="./js-gen/transcript-generation.js"></script>
+    <script type="text/javascript" src="./js/faust_common.js"></script>
 
     <style>
       *, *:before, *:after {
@@ -51,22 +40,21 @@
     </div>
     <section id="debughelp">
       <h1>Transcript Generation Debugging</h1>
-      <p>This page helps in debugging the generation of the transcript generation. Just replace the <code>documentViewer</code> URL with the one to this HTML, retaining at least the faustUri and page parameters, and use the developer tools (F12).</p>
-      <p>Note this will work (1) only if served by a server and (2) only when the json files are there, i.e. generation has run at least once.</p>
-
+      <p>This page helps in debugging the <strong>inclusion</strong> of the transcript generation. Just replace the <code>documentViewer</code> URL with the one to this HTML, retaining at least the faustUri and page parameters, and use the developer tools (F12).</p>
+      <p>Note this will work (1) only if served by a server and (2) only when the svg files are there, i.e. generation has run at least once.</p>
     </section>
 
     <footer class="pure-noprint pure-right">
       <div class="pure-g-r">
         <div class="pure-u-1-2">
           <a id="documentViewer">Edition</a>
-          <a id="debug2">Einbindung debuggen</a>
+          <a id="debug">Generierung debuggen</a>
         </div>
       </div>
     </footer>
     <script type="text/javascript">
       document.getElementById("documentViewer").href = 'documentViewer' + window.location.search;
-      document.getElementById("debug2").href = 'debug2' + window.location.search;
+      document.getElementById("debug").href = 'debug' + window.location.search;
     </script>
 
     <script type="text/javascript">
@@ -86,11 +74,13 @@
       };
       var params = parseQueryString(window.location.search.substring(1));
       console.log(params);
-      var json = params.faustUri.replace(/^faust:\/\/xml\/document/, 'json') + '/page_' + params.page + '.json';
-      console.log(json);
+      var svg = params.faustUri.replace(/^faust:\/\/xml\/document/, 'transcript/diplomatic') + '/page_' + params.page + '.svg';
+      console.log(svg);
       var help = document.getElementById("debughelp");
       help.parentNode.removeChild(help);
-      Faust.io(json, transcriptGeneration.createDiplomaticSvg);
+      Faust.xhr.getResponseText(svg, function(data) {
+        document.getElementById("container").innerHTML = data;
+      });
     </script>
   </body>
 </html>
