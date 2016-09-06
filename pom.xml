@@ -292,7 +292,7 @@
 										</systemProperty>
 										<systemProperty>
 											<key>log4j.configurationFile</key>
-											<value>${project.basedir}/src/resources/log4j2.xml</value>
+											<value>${project.basedir}/src/main/resources/log4j2.xml</value>
 										</systemProperty>
 									</systemProperties>
 								</configuration>
