@@ -370,10 +370,17 @@
 							<target xmlns:xdb="http://exist-db.org/ant">
 								<taskdef name="store" classname="org.exist.ant.XMLDBStoreTask"
 									classpathref="maven.compile.classpath" />
-								<store uri="${exist.uri}/faust" user="${exist.user}" password="${exist.pass}"
+								<store uri="${exist.uri}/apps/faust/data" user="${exist.user}" password="${exist.pass}"
 									createcollection="true" createsubcollections="true">
 									<fileset dir="${project.build.directory}/search/textTranscript">
 										<include name="**/*.xml" />
+									</fileset>
+								</store>
+								<store uri="${exist.uri}/apps/faust/xslt" user="${exist.user}" password="${exist.pass}"
+									createcollection="true" createsubcollections="true">
+									<fileset dir="${project.basedir}/src/main/xproc/xslt">
+										<include name="*.xsl" />
+										<include name="*.xml" />
 									</fileset>
 								</store>
 							</target>
