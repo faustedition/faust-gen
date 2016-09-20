@@ -344,9 +344,9 @@
 		<profile>
 			<id>exist</id>
 			<properties>
-				<exist.uri>xmldb:exist://localhost:8080/exist/xmlrpc/db</exist.uri>
-				<exist.user>admin</exist.user>
-				<exist.pass>geheim</exist.pass>
+				<!--exist.uri>xmldb:exist://localhost:8080/exist/xmlrpc/db/apps/faust</exist.uri-->
+				<exist.user>${env.EXIST_USER}</exist.user>
+				<exist.pass>${env.EXIST_PASS}</exist.pass>
 			</properties>
 			<dependencies>
 				<dependency>
@@ -366,17 +366,30 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>prepare-exist</id>
+								<phase>deploy</phase>
+								<goals><goal>run</goal></goals>
+							</execution>
+						</executions>
 						<configuration>
 							<target xmlns:xdb="http://exist-db.org/ant">
 								<taskdef name="store" classname="org.exist.ant.XMLDBStoreTask"
 									classpathref="maven.compile.classpath" />
-								<store uri="${exist.uri}/apps/faust/data" user="${exist.user}" password="${exist.pass}"
+								<store uri="${exist.uri}" user="${exist.user}" password="${exist.pass}"
+									createcollection="true" createsubcollections="true">
+									<fileset dir="${project.basedir}/src/main/xproc/exist">
+										<include name="*"/>
+									</fileset>
+								</store>
+								<store uri="${exist.uri}/data" user="${exist.user}" password="${exist.pass}"
 									createcollection="true" createsubcollections="true">
 									<fileset dir="${project.build.directory}/search/textTranscript">
 										<include name="**/*.xml" />
 									</fileset>
 								</store>
-								<store uri="${exist.uri}/apps/faust/xslt" user="${exist.user}" password="${exist.pass}"
+								<store uri="${exist.uri}/xslt" user="${exist.user}" password="${exist.pass}"
 									createcollection="true" createsubcollections="true">
 									<fileset dir="${project.basedir}/src/main/xproc/xslt">
 										<include name="*.xsl" />
