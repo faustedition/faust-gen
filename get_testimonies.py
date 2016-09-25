@@ -121,6 +121,7 @@ def write_html(output, table):
         out.write(suffix)
 
 def main():
+    pd.set_option('max_colwidth', 10000)
     df = read_testimonies(fetch_table())
     write_html("src/main/web/archive_testimonies.php", html_table(df))
 
