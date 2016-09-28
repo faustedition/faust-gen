@@ -10,6 +10,7 @@
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<upload.url>beta.faustedition.net:/var/www/dev</upload.url>
 		<faust.diplo.allowedFailures>10</faust.diplo.allowedFailures>
+		<exist.app-name>faust-dev</exist.app-name>
 	</properties>
 
 	<repositories>
@@ -171,6 +172,43 @@
 					<execution>
 						<id>default-deploy</id>
 						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>xar</id>
+						<phase>package</phase>
+						<goals><goal>single</goal></goals>
+						<configuration>
+							<descriptor>${basedir}/src/main/assembly/exist-app.xml</descriptor>
+							<finalName>${exist.app-name}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>xar-rename</id>
+						<phase>package</phase>
+						<goals><goal>run</goal></goals>
+						<configuration>
+							<target>
+								<move file="${project.build.directory}/${exist.app-name}.zip" 
+									tofile="${project.build.directory}/${exist.app-name}.xar"/>
+							</target>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
