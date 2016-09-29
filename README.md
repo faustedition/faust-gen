@@ -12,6 +12,13 @@ Maven ≥ 3.2 and Java ≥ 8 are required.
 
 For the `deploy` step, you need a local rsync and make sure we can build a ssh connection to the target server (e.g., by providing an SSH agent with an unlocked key).
 
+## eXist-based search
+
+There is a preliminary eXist app that implements the search functionality. Deploying the app to the eXist server automatically from the build is not yet implemented, however, there are two preliminary ways to get the data in there:
+
+* `mvn package` builds an eXist application archive, `faust.xar`, that can then be deployed to the database using, e.g., its package manager
+* You can run a command line along the lines of `mvn -P'exist' -Dexist.uri=xmldb:exist://localhost:8080/exist/xmlrpc/db/apps/faust antrun:run -Dexist.user=admin -Dexist.pass=secret` to update all the files (data and code) of an already-deployed app after you have built at least the 'xproc' stuff.
+
 ## Advanced usage
 
 The build uses _profiles_ to select the parts that should run. The profile `svg` (`mvn -Psvg package`) runs the SVG generation, the profile `xproc` the XProc stuff. Everything is on by default, so just running `mvn clean package` will generate the whole site (except images) in `target/www`
