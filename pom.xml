@@ -189,6 +189,7 @@
 							<descriptor>${basedir}/src/main/assembly/exist-app.xml</descriptor>
 							<finalName>${exist.app-name}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
+							<attach>false</attach>
 						</configuration>
 					</execution>
 				</executions>
