@@ -10,6 +10,8 @@
 		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
 		<upload.url>beta.faustedition.net:/var/www/dev</upload.url>
 		<faust.diplo.allowedFailures>10</faust.diplo.allowedFailures>
+		<faust.diplo.server>false</faust.diplo.server> <!-- Run only the web server, don't actually convert -->
+		<faust.diplo.debug>true</faust.diplo.debug>   <!-- Debug phantomjs, produces massive output -->
 		<exist.app-name>faust-dev</exist.app-name>
 	</properties>
 
@@ -261,6 +263,8 @@
 										<classpath/>
 										<argument>-Dphantomjs.binary=${phantomjs.binary}</argument>
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
+										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
+										<argument>-Dfaust.diplo.debug=${faust.diplo.debug}</argument>
 										<argument>net.faustedition.gen.DiplomaticConversion</argument>
 									</arguments>
 								</configuration>

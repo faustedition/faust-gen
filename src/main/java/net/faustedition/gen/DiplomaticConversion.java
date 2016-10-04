@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -25,6 +26,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerException;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mycila.xmltool.XMLDoc;
 import com.mycila.xmltool.XMLDocumentException;
@@ -40,6 +42,12 @@ public class DiplomaticConversion {
 	public static Path root = Paths.get("data/xml/");
 	public static Path target = Paths.get("target");
 	private static String serverURL;
+
+	private static boolean debugPhantomJS;
+
+	private static boolean onlyWebServer;
+
+	private static ImmutableList<String> baseCmdLine;
 
 	public static class TranscriptPage {
 		public final Document document;
@@ -93,8 +101,11 @@ public class DiplomaticConversion {
 		public boolean buildSVGs() {
 			logger.fine("Converting " + this);
 			final ArrayList<String> arguments = Lists.newArrayList(
-					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), "rendersvgs.js",
-					serverURL, getJsonPath().toString(),
+					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
+					debugPhantomJS? "--debug=true" : "",
+					"rendersvgs.js",
+					serverURL, 
+					getJsonPath().toString(),
 					target.resolve("www").resolve("transcript").resolve("diplomatic").resolve(getPagePath("svg")).toString());
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
@@ -105,6 +116,8 @@ public class DiplomaticConversion {
 			}
 
 			try {
+				if (debugPhantomJS)
+					logger.fine(() -> String.join(" ", arguments));
 				final Process renderProcess = new ProcessBuilder(arguments).redirectErrorStream(true).start();
 				final BufferedReader bufferedReader = new BufferedReader(
 						new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
@@ -153,34 +166,50 @@ public class DiplomaticConversion {
 	}
 
 	public static void main(final String[] args) throws IOException {
+		Properties properties = System.getProperties();
+		onlyWebServer = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.server", "false"));
+		debugPhantomJS = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.debug", "false"));
 		final SimpleWebServer webServer = new SimpleWebServer("localhost", 0, new File("svg_rendering/page"), true);
 		webServer.start(60, true);
 		try {
 			serverURL = new URL("http", "localhost", webServer.getListeningPort(), "/transcript-generation.html").toString();
 			logger.info(MessageFormat.format("Web server runs on {0}", serverURL));
+			baseCmdLine = ImmutableList.of(
+					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
+					debugPhantomJS? "--debug=true" : "",
+					"rendersvgs.js",
+					serverURL);
+			logger.info(() -> "PhantomJS command line: " + String.join(" ", baseCmdLine) + " <input> <output> [<links> <linkoutput>]");
 		
-		
-
-		final Object[] failedConversions = getDocuments()
-				.flatMap(document -> document.transcripts())
-				.parallel()
-				.map(page -> page.writeTranscriptJson())
-				.filter(page -> page.buildSVGs())
-				.filter(page -> page.buildSVGs())
-				.filter(page -> page.buildSVGs())
-				.toArray();
-
-		if (failedConversions.length > 0) {
-			logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed:\n {1}",
-					failedConversions.length, Joiner.on("\n ").join(failedConversions)));
-			int allowedFailures = Integer.parseUnsignedInt(System.getProperty("faust.diplo.allowedFailures", "0"));
-			if (failedConversions.length > allowedFailures) {
-				logger.log(Level.SEVERE, MessageFormat.format("These are more than the {0} tolerated failures.", allowedFailures));
-				System.exit(1);
+			if (onlyWebServer) {
+				logger.info("Hit Ctrl+C to interrupt");
+				while (true)
+					Thread.sleep(60^000);
 			} else {
-				logger.log(Level.INFO, MessageFormat.format("Up to {0} failures are tolerated.", allowedFailures));
+
+				final Object[] failedConversions = getDocuments()
+						.flatMap(document -> document.transcripts())
+						.parallel()
+						.map(page -> page.writeTranscriptJson())
+						.filter(page -> page.buildSVGs())
+						.filter(page -> page.buildSVGs())
+						.filter(page -> page.buildSVGs())
+						.toArray();
+
+				if (failedConversions.length > 0) {
+					logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed:\n {1}",
+							failedConversions.length, Joiner.on("\n ").join(failedConversions)));
+					int allowedFailures = Integer.parseUnsignedInt(System.getProperty("faust.diplo.allowedFailures", "0"));
+					if (failedConversions.length > allowedFailures) {
+						logger.log(Level.SEVERE, MessageFormat.format("These are more than the {0} tolerated failures.", allowedFailures));
+						System.exit(1);
+					} else {
+						logger.log(Level.INFO, MessageFormat.format("Up to {0} failures are tolerated.", allowedFailures));
+					}
+				}
 			}
-		}
+		} catch (InterruptedException e) {
+			logger.log(Level.INFO, "Interrupted.", e);
 		} finally {
 			webServer.stop();
 		}
