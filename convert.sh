@@ -37,6 +37,15 @@ rm "$current_dir/temp_input_folders.txt"
 cd "$input_dir"
 find . -type f -name "*.tif" -print0 | while IFS= read -r -d '' file
 do
+  # Generating the JSON file is the last step, so we can use that as an
+  # indicator on whether we need to do something for this input file at all
+  json_file=$(echo "$file" | sed "s#^\.#"$output_metadata"#;s/\.tif$/\.json/" )
+  if [ -s "$json_file" ]
+  then
+    continue
+  fi
+
+
   #convert tga->jpg and create preview images with max size 240x360 (widthXheight)
   out_file1=$(echo "$file" | sed "s#^\.#"$input_dir"#" )
   out_file2=$(echo "$file" | sed "s#^\.#"$output_jpg"#;s/\.tif$/_0\.jpg/" )
@@ -46,13 +55,6 @@ do
   convert "${out_file1}"[0] -strip "${out_file2}"
   convert "${out_file1}"[0] -strip -resize 240x360 "${out_file3}"
 
-
-  #create json metadata
-  echo "           creating json metadata"
-  json_file=$(echo "$file" | sed "s#^\.#"$output_metadata"#;s/\.tif$/\.json/" )
-  image_width=$(identify $file 2>/dev/null | sed -n '1 p' | cut -d\   -f3 | cut -dx -f1)
-  image_height=$(identify $file 2>/dev/null | sed -n '1 p' | cut -d\   -f3 | cut -dx -f2)
-  printf "{\n  \"imageWidth\": %s,\n  \"imageHeight\": %s,\n  \"tileWidth\": %s,\n  \"tileHeight\": %s,\n  \"zoomLevels\": %s\n}" ${image_width} ${image_height} ${tile_width} ${tile_height} ${zoom_levels}  > "${json_file}"
 
   #scale images
   echo "           creating scaled images"
@@ -75,6 +77,15 @@ do
 #    echo "         $cmd"
     convert "${scaled_file}" -strip -crop ${tile_width}x${tile_height} -set filename:tile %[fx:page.x/${tile_width}]_%[fx:page.y/${tile_height}] +repage +adjoin "${tiled_file}"
   done
+
+  #create json metadata
+  echo "           creating json metadata"
+  #json_file=$(echo "$file" | sed "s#^\.#"$output_metadata"#;s/\.tif$/\.json/" )
+  image_width=$(identify $file 2>/dev/null | sed -n '1 p' | cut -d\   -f3 | cut -dx -f1)
+  image_height=$(identify $file 2>/dev/null | sed -n '1 p' | cut -d\   -f3 | cut -dx -f2)
+  printf "{\n  \"imageWidth\": %s,\n  \"imageHeight\": %s,\n  \"tileWidth\": %s,\n  \"tileHeight\": %s,\n  \"zoomLevels\": %s\n}" ${image_width} ${image_height} ${tile_width} ${tile_height} ${zoom_levels}  > "${json_file}"
+
+
 done
 
 # return to the folder that we started in
