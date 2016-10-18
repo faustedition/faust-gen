@@ -6,7 +6,7 @@
 window.setTimeout(function() {
     console.log("ERROR: Timeout during conversion for " + input);
     phantom.exit(2);
-  }, 10000);
+  }, 300000);
 
 var page = require('webpage').create(),
     fs = require('fs'),
@@ -31,6 +31,7 @@ if (system.args.length !== 4 && system.args.length !== 6) {
 page.onError = function (msg, trace) { console.log(msg); trace.forEach(function(item) { console.log(' ', item.file, ':', item.line); }); }; 
 page.onConsoleMessage = function(msg, lineNum, sourceId) { console.log('CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")'); };
 page.onCallback = function(result) {
+      var out;
       out = fs.open(output, { mode: "w", charset: "UTF-8" });
       out.write(result.svg);
       out.close();
