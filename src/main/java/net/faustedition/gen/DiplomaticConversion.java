@@ -116,8 +116,7 @@ public class DiplomaticConversion {
 			}
 
 			try {
-				if (debugPhantomJS)
-					logger.fine(() -> String.join(" ", arguments));
+				logger.info(() -> String.join(" ", arguments));
 				final Process renderProcess = new ProcessBuilder(arguments).redirectErrorStream(true).start();
 				final BufferedReader bufferedReader = new BufferedReader(
 						new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
@@ -180,6 +179,8 @@ public class DiplomaticConversion {
 					"rendersvgs.js",
 					serverURL);
 			logger.info(() -> "PhantomJS command line: " + String.join(" ", baseCmdLine) + " <input> <output> [<links> <linkoutput>]");
+			
+			logger.info(() -> "Environment:\n" + Joiner.on("\n").withKeyValueSeparator("=").join(System.getenv()));
 		
 			if (onlyWebServer) {
 				logger.info("Hit Ctrl+C to interrupt");

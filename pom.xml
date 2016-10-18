@@ -18,20 +18,9 @@
 	<repositories>
 
 		<repository>
-			<id>dh.nexus.releases</id>
-			<name>Cophi Nexus Releases</name>
-			<url>http://dev.digital-humanities.de/nexus/content/repositories/releases</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>dh.nexus.snapshots</id>
-			<name>Cophi Nexus snapshots</name>
-			<url>http://dev.digital-humanities.de/nexus/content/repositories/snapshots</url>
+			<id>dh.nexus.public</id>
+			<name>Cophi Nexus</name>
+			<url>http://dev.digital-humanities.de/nexus/content/groups/public</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
@@ -225,21 +214,35 @@
 			<activation><activeByDefault>true</activeByDefault></activation>
 			<build>
 				<plugins>
+				
 					<plugin>
-						<groupId>com.github.klieber</groupId>
-						<artifactId>phantomjs-maven-plugin</artifactId>
-						<version>0.7</version>
-						<configuration>
-							<version>2.2.0-SNAPSHOT</version>
-						</configuration>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<version>2.10</version>
 						<executions>
 							<execution>
-								<goals>
-									<goal>install</goal>
-								</goals>
+								<id>get-slimerjs</id>
 								<phase>compile</phase>
+								<goals><goal>unpack</goal></goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>net.faustedition</groupId>
+											<artifactId>slimerjs</artifactId>
+											<version>0.10.1</version>
+											<type>zip</type>
+										</artifactItem>
+										<artifactItem>
+											<groupId>org.mozilla</groupId>
+											<artifactId>firefox</artifactId>
+											<version>45.4.0esr</version>
+											<classifier>linux-x86_64</classifier>
+											<type>tar.bz2</type>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
 							</execution>
-						</executions>				
+						</executions>
 					</plugin>
 					
 					<plugin>
@@ -257,12 +260,13 @@
 									<environmentVariables>
 										<LANG>en_US.UTF-8</LANG>
 										<LC_ALL>en_US.UTF-8</LC_ALL>
+										<SLIMERJSLAUNCHER>${project.build.directory}/dependency/firefox/firefox</SLIMERJSLAUNCHER>
 									</environmentVariables>
 									<executable>java</executable>
 									<arguments>
 										<argument>-classpath</argument>
 										<classpath/>
-										<argument>-Dphantomjs.binary=${phantomjs.binary}</argument>
+										<argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-0.10.1/slimerjs</argument>
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
 										<argument>-Dfaust.diplo.debug=${faust.diplo.debug}</argument>

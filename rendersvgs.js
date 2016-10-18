@@ -15,7 +15,7 @@ var page = require('webpage').create(),
 var backend = system.args[1],
     input   = system.args[2],
     output  = system.args[3],
-    links   = system.args[4];
+    links   = system.args[4],
     linkout = system.args[5];
 
 if (system.args.length !== 4 && system.args.length !== 6) {
