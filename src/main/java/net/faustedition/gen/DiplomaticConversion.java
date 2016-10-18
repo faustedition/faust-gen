@@ -100,17 +100,23 @@ public class DiplomaticConversion {
 
 		public boolean buildSVGs() {
 			logger.fine("Converting " + this);
+			final Path resolvedSvgPath = target.resolve("www").resolve("transcript").resolve("diplomatic").resolve(getPagePath("svg"));
+			resolvedSvgPath.getParent().toFile().mkdirs();
 			final ArrayList<String> arguments = Lists.newArrayList(
 					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
-					debugPhantomJS? "--debug=true" : "",
 					"rendersvgs.js",
 					serverURL, 
 					getJsonPath().toString(),
-					target.resolve("www").resolve("transcript").resolve("diplomatic").resolve(getPagePath("svg")).toString());
+					resolvedSvgPath.toString());
+			if (debugPhantomJS)
+				arguments.add(1, "--debug=true");
+			
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
 				arguments.add(imageLinkPath.get().toString());
-				arguments.add(target.resolve("www").resolve("transcript").resolve("overlay").resolve(getPagePath("svg")).toString());
+				Path resolvedOverlayPath = target.resolve("www").resolve("transcript").resolve("overlay").resolve(getPagePath("svg"));
+				resolvedOverlayPath.getParent().toFile().mkdirs();
+				arguments.add(resolvedOverlayPath.toString());
 			} else {
 				logger.fine(this + " has no text-image-links");
 			}
@@ -120,7 +126,7 @@ public class DiplomaticConversion {
 				final Process renderProcess = new ProcessBuilder(arguments).redirectErrorStream(true).start();
 				final BufferedReader bufferedReader = new BufferedReader(
 						new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
-				bufferedReader.lines().forEach(line -> logger.warning(line + " (while converting " + this + ")"));
+				bufferedReader.lines().forEach(line -> logger.warning(line /*+ " (while converting " + this + ")"*/));
 				return renderProcess.waitFor() != 0;
 			} catch (IOException | InterruptedException e) {
 				logger.log(Level.SEVERE, "Failed to convert SVG for " + document.base.resolve(page), e);
@@ -180,12 +186,11 @@ public class DiplomaticConversion {
 					serverURL);
 			logger.info(() -> "PhantomJS command line: " + String.join(" ", baseCmdLine) + " <input> <output> [<links> <linkoutput>]");
 			
-			logger.info(() -> "Environment:\n" + Joiner.on("\n").withKeyValueSeparator("=").join(System.getenv()));
 		
 			if (onlyWebServer) {
 				logger.info("Hit Ctrl+C to interrupt");
 				while (true)
-					Thread.sleep(60^000);
+					Thread.sleep(60000);
 			} else {
 
 				final Object[] failedConversions = getDocuments()
