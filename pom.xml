@@ -12,7 +12,7 @@
 		<faust.diplo.allowedFailures>10</faust.diplo.allowedFailures>
 		<faust.diplo.server>false</faust.diplo.server> <!-- Run only the web server, don't actually convert -->
 		<faust.diplo.debug>false</faust.diplo.debug>   <!-- Debug phantomjs, produces massive output -->
-		<exist.app-name>faust-dev</exist.app-name>
+		<exist.app-name>faust</exist.app-name>
 	</properties>
 
 	<repositories>
