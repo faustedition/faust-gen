@@ -109,7 +109,7 @@ public class DiplomaticConversion {
 					getJsonPath().toString(),
 					resolvedSvgPath.toString());
 			if (debugPhantomJS)
-				arguments.add(1, "--debug=true");
+				arguments.add(1, "--debug=errors");
 			
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
@@ -122,14 +122,18 @@ public class DiplomaticConversion {
 			}
 
 			try {
-				logger.info(() -> String.join(" ", arguments));
+				logger.fine(() -> String.join(" ", arguments));
 				final Process renderProcess = new ProcessBuilder(arguments).redirectErrorStream(true).start();
 				final BufferedReader bufferedReader = new BufferedReader(
 						new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
-				bufferedReader.lines().forEach(line -> logger.warning(line /*+ " (while converting " + this + ")"*/));
-				return renderProcess.waitFor() != 0;
+				bufferedReader.lines().forEach(line -> logger.warning(line + "[" + this + "]"));
+				int exitCode = renderProcess.waitFor();
+				if (exitCode != 0) {
+					logger.log(Level.SEVERE, MessageFormat.format("Failed to convert SVG for {}: Exit Code {}", document.base.resolve(page), exitCode));
+				}
+				return exitCode != 0;
 			} catch (IOException | InterruptedException e) {
-				logger.log(Level.SEVERE, "Failed to convert SVG for " + document.base.resolve(page), e);
+				logger.log(Level.SEVERE, "Failed to convert SVG for " + document.base.resolve(page) + ": " + e.getMessage(), e);
 			}
 			return true;
 		}
@@ -172,6 +176,7 @@ public class DiplomaticConversion {
 
 	public static void main(final String[] args) throws IOException {
 		Properties properties = System.getProperties();
+		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
 		onlyWebServer = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.server", "false"));
 		debugPhantomJS = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.debug", "false"));
 		final SimpleWebServer webServer = new SimpleWebServer("localhost", 0, new File("svg_rendering/page"), true);
