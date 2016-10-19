@@ -129,7 +129,7 @@ public class DiplomaticConversion {
 				bufferedReader.lines().forEach(line -> logger.warning(line + "[" + this + "]"));
 				int exitCode = renderProcess.waitFor();
 				if (exitCode != 0) {
-					logger.log(Level.SEVERE, MessageFormat.format("Failed to convert SVG for {}: Exit Code {}", document.base.resolve(page), exitCode));
+					logger.log(Level.SEVERE, MessageFormat.format("Failed to convert SVG for {0}: Exit Code {1}", document.base.resolve(page), exitCode));
 				}
 				return exitCode != 0;
 			} catch (IOException | InterruptedException e) {
