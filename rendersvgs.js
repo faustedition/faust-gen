@@ -28,8 +28,8 @@ if (system.args.length !== 4 && system.args.length !== 6) {
 }
 
 
-page.onError = function (msg, trace) { console.log(msg); trace.forEach(function(item) { console.log(' ', item.file, ':', item.line); }); }; 
-page.onConsoleMessage = function(msg, lineNum, sourceId) { console.log('CONSOLE: ' + msg + ' (from line #' + lineNum + ' in "' + sourceId + '")'); };
+page.onError = function (msg, trace) { console.log("ENGINE ERROR:", msg, typeof(msg), arguments); trace.forEach(function(item) { console.log(' at ', item.file, ':', item.line); }); }; 
+page.onConsoleMessage = function(msg, lineNum, sourceId, level, fun) { console.log('CONSOLE: ' + msg + ' (from '+fun+', line #' + lineNum + ' in "' + sourceId + '")'); };
 page.onCallback = function(result) {
       var out;
       out = fs.open(output, { mode: "w", charset: "UTF-8" });
