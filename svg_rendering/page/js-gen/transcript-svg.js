@@ -422,13 +422,13 @@ if(window.FaustTranscript === undefined) {
 		return view;
 	};
 
-	FaustTranscript.LineDecoration.prototype.layout = function() {
+	FaustTranscript.LineDecoration.prototype.layout = function() { try {
 		var textBBox = this.text.textElement.getBBox();
 		this.view.setAttribute("x1", textBBox.x);
 		this.view.setAttribute("x2", textBBox.x + textBBox.width);
 		var y = textBBox.height * this.yOffset;
 		this.view.setAttribute("y1", y);
-		this.view.setAttribute('y2', y);
+		this.view.setAttribute('y2', y); } catch (e) { console.error("Error in LineDecoration.Layout: ", e, this.text); }
 	};
 
 	FaustTranscript.CloneDecoration.prototype.createView = function() {
