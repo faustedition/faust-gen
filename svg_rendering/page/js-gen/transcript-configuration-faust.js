@@ -81,7 +81,7 @@ if(window.Faust === undefined) {
 
 				'ex' : { vc: function(){return new FaustTranscript.InlineViewComponent();}},
 
-				'expan' : { vc: function(){return new FaustTranscript.InlineViewComponent();}},
+				'expan' : { vc: function(){}},
 
 				'gap': {
 					vc:  function(node, text, layoutState) {

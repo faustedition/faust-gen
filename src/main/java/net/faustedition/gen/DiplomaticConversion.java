@@ -127,10 +127,12 @@ public class DiplomaticConversion {
 				final Process renderProcess = new ProcessBuilder(arguments).redirectErrorStream(true).start();
 				final BufferedReader bufferedReader = new BufferedReader(
 						new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
-				String scriptOutput = bufferedReader.lines().collect(Collectors.joining("\n"));
+				String scriptOutput = bufferedReader.lines().distinct().collect(Collectors.joining("\n"));
 				int exitCode = renderProcess.waitFor();
 				if (exitCode != 0) {
 					logger.log(Level.SEVERE, MessageFormat.format("Failed to convert SVG for {0}: Exit Code {1}. Script output:\n{2}", document.base.resolve(page), exitCode, scriptOutput));
+				} else if (!debugPhantomJS && scriptOutput.length() > 2) {
+					logger.log(Level.WARNING, MessageFormat.format("Conversion to SVG for {0} issued messages:\n{1}", document.base.resolve(page), scriptOutput));
 				}
 				return exitCode != 0;
 			} catch (IOException | InterruptedException e) {

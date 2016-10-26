@@ -428,7 +428,7 @@ if(window.FaustTranscript === undefined) {
 		this.view.setAttribute("x2", textBBox.x + textBBox.width);
 		var y = textBBox.height * this.yOffset;
 		this.view.setAttribute("y1", y);
-		this.view.setAttribute('y2', y); } catch (e) { console.error("Error in LineDecoration.Layout: ", e, this.text); }
+		this.view.setAttribute('y2', y); } catch (e) { console.error("Error in LineDecoration.Layout: ", e, this.text.textElement.textContent); }
 	};
 
 	FaustTranscript.CloneDecoration.prototype.createView = function() {
