@@ -353,7 +353,7 @@
 		
 		<profile>
 			<id>debug-rendering</id>
-			<activation><activeByDefault>false</activeByDefault></activation>
+			<activation><activeByDefault>true</activeByDefault></activation>
 			<build>
 				<resources>
 					<resource>
