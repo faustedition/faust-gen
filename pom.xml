@@ -270,7 +270,6 @@
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
 										<argument>-Dfaust.diplo.debug=${faust.diplo.debug}</argument>
-										<argument>-Dfaust.diplo.only=${faust.diplo.only}</argument>
 										<argument>net.faustedition.gen.DiplomaticConversion</argument>
 									</arguments>
 								</configuration>

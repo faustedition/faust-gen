@@ -235,14 +235,7 @@ public class DiplomaticConversion {
 	}
 
 	private static Stream<Document> getDocuments() throws IOException {
-		Path startDir = root.resolve("document");
-		String onlyDir = System.getProperty("faust.diplo.only", null);
-		if (onlyDir != null) {
-			startDir = startDir.resolve(onlyDir);
-			logger.warning("By user request, limiting processing to " + startDir.toString());
-		}
-		
-		return Files.walk(startDir).filter(path -> path.toString().endsWith(".xml")).map(
+		return Files.walk(root.resolve("document")).filter(path -> path.toString().endsWith(".xml")).map(
 				path -> new Document(path));
 	}
 }
