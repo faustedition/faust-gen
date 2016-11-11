@@ -62,6 +62,7 @@ page.open(backend, function(status) {
     transcriptGeneration.createToPhantom(transcript, imagelinks);
   };
 
-  page.evaluate(render, transcript, imagelinks);
+  page.render("target/preload.png");
+  window.setTimeout(function() { page.evaluate(render, transcript, imagelinks); }, 500);
   
 });
