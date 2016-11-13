@@ -270,6 +270,7 @@
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
 										<argument>-Dfaust.diplo.debug=${faust.diplo.debug}</argument>
+										<argument>-Djava.util.concurrent.ForkJoinPool.common.parallelism=20</argument>
 										<argument>net.faustedition.gen.DiplomaticConversion</argument>
 									</arguments>
 								</configuration>

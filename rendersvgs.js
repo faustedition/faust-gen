@@ -59,10 +59,11 @@ page.open(backend, function(status) {
       imagelinks = links? fs.read(links, {mode: "r", charset: "UTF-8"}) : undefined;
   
   function render(transcript, imagelinks) {
+    document.getElementById('preload').remove();
     transcriptGeneration.createToPhantom(transcript, imagelinks);
   };
 
   page.render("target/preload.png");
-  window.setTimeout(function() { page.evaluate(render, transcript, imagelinks); }, 500);
+  window.setTimeout(function() { page.evaluate(render, transcript, imagelinks); }, 1000);
   
 });
