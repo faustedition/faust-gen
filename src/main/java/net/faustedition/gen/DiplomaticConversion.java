@@ -15,8 +15,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -141,6 +147,10 @@ public class DiplomaticConversion {
 			return true;
 		}
 
+		public Callable<Optional<TranscriptPage>> getSvgBuilder() {
+			return () -> (this.buildSVGs() ? Optional.of(this) : Optional.empty());
+		}
+		
 		private Path getJsonPath() {
 			return target.resolve("pages/").resolve(getPagePath("json"));
 		}
@@ -200,21 +210,43 @@ public class DiplomaticConversion {
 				while (true)
 					Thread.sleep(60000);
 			} else {
+				
+				logger.info("Converting diplomatic transcripts to JSON ...");
 
-				final Object[] failedConversions = getDocuments()
+				 List<Callable<Optional<TranscriptPage>>> svgBuilders = getDocuments()
 						.flatMap(document -> document.transcripts())
 						.parallel()
 						.map(page -> page.writeTranscriptJson())
-						.filter(page -> page.buildSVGs())
-						.filter(page -> page.buildSVGs())
-						.filter(page -> page.buildSVGs())
-						.toArray();
+						.map(page -> page.getSvgBuilder())
+						.collect(Collectors.toList());
+				 
+				int nThreads = Integer.valueOf(System.getProperty("faust.diplo.threads", "0"));
+				if (nThreads <= 0)
+					nThreads = Runtime.getRuntime().availableProcessors();
+				logger.log(Level.INFO, MessageFormat.format("Rendering {0} pages in {1} parallel jobs ...", svgBuilders.size(), nThreads));
+				
+				ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
+				List<Future<Optional<TranscriptPage>>> results = threadPool.invokeAll(svgBuilders);
+				
+				List<TranscriptPage> failedConversions = results.stream()
+						.map(future -> {
+							try {
+								return future.get();
+							} catch (InterruptedException | ExecutionException e) {
+								logger.log(Level.SEVERE, "Failed to get conversion future!?", e);
+								return Optional.<TranscriptPage>empty();
+							}
+						})
+						.filter(result -> result.isPresent())
+						.map(result -> result.get())
+						.collect(Collectors.toList());
+				
 
-				if (failedConversions.length > 0) {
+				if (!failedConversions.isEmpty()) {
 					logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed:\n {1}",
-							failedConversions.length, Joiner.on("\n ").join(failedConversions)));
+							failedConversions.size(), Joiner.on("\n ").join(failedConversions)));
 					int allowedFailures = Integer.parseUnsignedInt(System.getProperty("faust.diplo.allowedFailures", "0"));
-					if (failedConversions.length > allowedFailures) {
+					if (failedConversions.size() > allowedFailures) {
 						logger.log(Level.SEVERE, MessageFormat.format("These are more than the {0} tolerated failures.", allowedFailures));
 						System.exit(1);
 					} else {
