@@ -213,38 +213,40 @@ public class DiplomaticConversion {
 				
 				logger.info("Converting diplomatic transcripts to JSON ...");
 
-				 List<Callable<Optional<TranscriptPage>>> svgBuilders = getDocuments()
+				List<TranscriptPage> transcriptPages = getDocuments()
 						.flatMap(document -> document.transcripts())
 						.parallel()
 						.map(page -> page.writeTranscriptJson())
-						.map(page -> page.getSvgBuilder())
 						.collect(Collectors.toList());
+				 
 				 
 				int nThreads = Integer.valueOf(System.getProperty("faust.diplo.threads", "0"));
 				if (nThreads <= 0)
 					nThreads = Runtime.getRuntime().availableProcessors();
-				logger.log(Level.INFO, MessageFormat.format("Rendering {0} pages in {1} parallel jobs ...", svgBuilders.size(), nThreads));
 				
-				ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
-				List<Future<Optional<TranscriptPage>>> results = threadPool.invokeAll(svgBuilders);
-				
-				List<TranscriptPage> failedConversions = results.stream()
-						.map(future -> {
-							try {
-								return future.get();
-							} catch (InterruptedException | ExecutionException e) {
-								logger.log(Level.SEVERE, "Failed to get conversion future!?", e);
-								return Optional.<TranscriptPage>empty();
-							}
-						})
-						.filter(result -> result.isPresent())
-						.map(result -> result.get())
-						.collect(Collectors.toList());
+				int tries = 0;
+				int totalPages;
+				int failedPages;
+				List<TranscriptPage> failedConversions;
+				do {
+					failedConversions = runSVGconversion(transcriptPages, nThreads);
+					totalPages = transcriptPages.size();
+					failedPages = failedConversions.size();
+					tries += 1;
+					if (failedPages > 0 && failedPages < totalPages && tries > 1) {
+						transcriptPages.removeAll(failedConversions);
+						logger.log(Level.WARNING, MessageFormat.format("The following {0} pages needed {1} tries to properly convert:\n {2}", 
+								totalPages - failedPages, tries, Joiner.on("\n ").join(transcriptPages)));
+					} else {
+						logger.log(Level.INFO, MessageFormat.format("Failed to convert {0} of {1} pages at try {2}", failedPages, totalPages, try);
+					}
+					transcriptPages = failedConversions;
+				} while (failedPages > 0 && failedPages < totalPages);
 				
 
 				if (!failedConversions.isEmpty()) {
-					logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed:\n {1}",
-							failedConversions.size(), Joiner.on("\n ").join(failedConversions)));
+					logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed after {1} tries:\n {2}",
+							failedConversions.size(), tries, Joiner.on("\n ").join(failedConversions)));
 					int allowedFailures = Integer.parseUnsignedInt(System.getProperty("faust.diplo.allowedFailures", "0"));
 					if (failedConversions.size() > allowedFailures) {
 						logger.log(Level.SEVERE, MessageFormat.format("These are more than the {0} tolerated failures.", allowedFailures));
@@ -260,6 +262,40 @@ public class DiplomaticConversion {
 			webServer.stop();
 		}
 		
+	}
+
+	/**
+	 * Runs the conversion for the given pages in nThreads parallel jobs.  
+	 * 
+	 * @param pages pages to convert. JSON files must already exist.
+	 * @param nThreads Number of threads to use.
+	 * @return List of pages for which conversion failed.
+	 * @throws InterruptedException
+	 */
+	private static List<TranscriptPage> runSVGconversion(List<TranscriptPage> pages, int nThreads)
+			throws InterruptedException {
+
+		logger.log(Level.INFO, MessageFormat.format("Rendering {0} pages in {1} parallel jobs ...", pages.size(), nThreads));
+		
+		List<Callable<Optional<TranscriptPage>>> svgBuilders =	Lists.transform(pages, page -> page.getSvgBuilder());
+		ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
+		List<Future<Optional<TranscriptPage>>> results = threadPool.invokeAll(svgBuilders);
+		
+		List<TranscriptPage> failedConversions = results.stream()
+				.map(future -> {
+					try {
+						return future.get();
+					} catch (InterruptedException | ExecutionException e) {
+						logger.log(Level.SEVERE, "Failed to get conversion future!?", e);
+						return Optional.<TranscriptPage>empty();
+					}
+				})
+				.filter(result -> result.isPresent())
+				.map(result -> result.get())
+				.collect(Collectors.toList());
+		threadPool.shutdown();
+		logger.log(Level.INFO, MessageFormat.format("... rendering failed for {0} pages:\n\t{1}", Joiner.on("\n\t").join(failedConversions)));
+		return failedConversions;
 	}
 
 	public static Path resolveFaustUri(final URI uri) {
