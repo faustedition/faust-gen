@@ -238,7 +238,7 @@ public class DiplomaticConversion {
 						logger.log(Level.WARNING, MessageFormat.format("The following {0} pages needed {1} tries to properly convert:\n {2}", 
 								totalPages - failedPages, tries, Joiner.on("\n ").join(transcriptPages)));
 					} else {
-						logger.log(Level.INFO, MessageFormat.format("Failed to convert {0} of {1} pages at try {2}", failedPages, totalPages, try);
+						logger.log(Level.INFO, MessageFormat.format("Failed to convert {0} of {1} pages at try {2}", failedPages, totalPages, tries));
 					}
 					transcriptPages = failedConversions;
 				} while (failedPages > 0 && failedPages < totalPages);
