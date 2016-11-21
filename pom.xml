@@ -119,6 +119,15 @@
 	
 	<build>
 		<defaultGoal>package</defaultGoal>
+
+		<extensions>
+			<extension>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>1.4.0.Final</version>
+			</extension>
+		</extensions>
+			
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -236,7 +245,7 @@
 											<groupId>org.mozilla</groupId>
 											<artifactId>firefox</artifactId>
 											<version>45.4.0esr</version>
-											<classifier>linux-x86_64</classifier>
+											<classifier>${os.detected.classifier}</classifier>
 											<type>tar.bz2</type>
 										</artifactItem>
 									</artifactItems>
