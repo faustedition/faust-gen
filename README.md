@@ -4,7 +4,7 @@ The Faust-Edition web application builds on data that is automatically pre-gener
 
 ## Basic Usage
 
-Clone the project and all submodules and run `mvn clean package`.
+Clone the project and all submodules and run `mvn clean package` (or just `mvn`)
 
 ## Dependencies
 
@@ -31,11 +31,33 @@ The diplomatic transcripts are rendered page by page using JavaScript in a simul
 
 The code that does the actual rendering can be found in <svg_rendering/page>. This folder contains a simple web page, with font resources etc. pulled in from faust-web, plus the rendering code mainly developed by Moritz Wissenbach in <svg_rendering/page/js_gen>. 
 
-To create both the diplomatic transcript and the overlay transcript for a single page, <rendersvgs.js> is called using [PhantomJS](http://phantomjs.org/), which will load <svg_rendering/page> in its simulated browser, trigger the rendering scripts there, and then extract and store the rendered SVGs.
+To create both the diplomatic transcript and the overlay transcript for a single page, <rendersvgs.js> is called using [PhantomJS](http://phantomjs.org/) or [SlimerJS](http://slimerjs.org), which will load <svg_rendering/page> in its simulated browser, trigger the rendering scripts there, and then extract and store the rendered SVGs.
 
 The JS does not directly work with the XML transcripts. Instead, each page needs to be transformed to a JSON representation, which is done using code from https://github.com/faustedition/faust-app, which is pulled in as a Maven dependency. The Java program at <src/main/java/net/faustedition/gen/DiplomaticConversion.java> is used to run the actual pipeline, i.e. iterate through the manuscripts and their pages, convert stuff to JSON, and run <rendersvgs.js> on each of these JSON files. Intermediate results (i.e. JSON files) and, if enabled, debugging data (e.g., PDFs) are written to the target directory.
 
 The process might well take 1.5h, it is bound to the `svg` profile.
+
+#### PhantomJS or SlimerJS?
+
+The process can run using either PhantomJS (based on QtWebKit) or SlimerJS (using Firefox). Which of the libraries is used needs to be configured in the `pom.xml`, there are comments illustrating the configuration.
+
+While PhantomJS bundles its own browser version, SlimerJS needs a firefox binary instead. The pom will try to get a specific Firefox version using maven dependencies – if it fails to do so, you can either deploy the specific Firefox version to a maven repo (or install it to your local repo), or uncomment the SLIMERJSthe specific Firefox version to a maven repo (or install it to your local repo), or comment the dependency and the SLIMERJSLAUNCHER environment variable setting in the pom to use your system's installed firefox.
+
+Here's what I used to deploy firefox:
+
+```bash
+mvn deploy:deploy-file \
+    -Durl=http://dev.digital-humanities.de/nexus/content/repositories/thirdparty/ -DrepositoryId=thirdparty \
+    -DgroupId=org.mozilla -DartifactId=firefox -Dclassifier=linux-x86_64 \
+    -Dpackaging=tar.bz2 -Dversion=45.4.0esr -Dfile=firefox-45.4.0esr.tar.bz2
+```
+
+SlimerJS isn't really headless, it opens and closes two windows per converted page. To avoid this, use, e.g., 
+
+```bash
+xvfb-run mvn
+```
+
 
 ### Textual transcripts, metadata, and overview data
 
