@@ -4,6 +4,7 @@
   <Appenders>
     <Console name="Console" target="SYSTEM_ERR">
       <PatternLayout pattern="%-5level: %msg%n" />
+      <RegexFilter regex=".*utils\.xsl is included or imported more than once.*" onMatch="DENY" onMismatch="ACCEPT"/>
     </Console>
   </Appenders>
   <Loggers>
