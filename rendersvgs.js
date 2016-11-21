@@ -59,7 +59,8 @@ page.open(backend, function(status) {
       imagelinks = links? fs.read(links, {mode: "r", charset: "UTF-8"}) : undefined;
   
   function render(transcript, imagelinks) {
-    document.getElementById('preload').remove();
+    var preloadEl = document.getElementById('preload');
+    preloadEl.parentNode.removeChild(preloadEl);
     transcriptGeneration.createToPhantom(transcript, imagelinks);
   };
 

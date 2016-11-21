@@ -237,13 +237,12 @@
 				 see the comment there.
 				
 				 -->
-				 <!--  
 					<plugin>
 						<groupId>com.github.klieber</groupId>
 						<artifactId>phantomjs-maven-plugin</artifactId>
 						<version>0.7</version>
 						<configuration>
-							<version>2.2.0-SNAPSHOT</version>
+							<version>1.9.1</version>
 						</configuration>
 						<executions>
 							<execution>
@@ -251,8 +250,8 @@
 							</execution>
 						</executions>
 					</plugin>
-					-->
 							
+					<!--
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-dependency-plugin</artifactId>
@@ -282,7 +281,7 @@
 							</execution>
 						</executions>
 					</plugin>
-					
+					-->
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
@@ -305,9 +304,9 @@
 										<argument>-classpath</argument>
 										<classpath/>
 										<!-- For PhantomJS: -->										
-										<!-- <argument>-Dphantomjs.binary=${phantomjs.binary}</argument> -->
+										<argument>-Dphantomjs.binary=${phantomjs.binary}</argument>
 										<!-- For SlimerJS instead: -->
-										<argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-0.10.1/slimerjs</argument>
+										<!-- <argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-0.10.1/slimerjs</argument> -->
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
 										<argument>-Dfaust.diplo.debug=${faust.diplo.debug}</argument>

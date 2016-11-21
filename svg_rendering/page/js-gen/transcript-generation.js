@@ -1,6 +1,15 @@
 var transcriptGeneration = (function(){
   "use strict";
 
+  /* remove() polyfill */
+  if (!('remove' in Element.prototype)) {
+      Element.prototype.remove = function() {
+          if (this.parentNode) {
+              this.parentNode.removeChild(this);
+          }
+      };
+  }
+
   var transcriptGeneration = {};
 
   var createRenderContainer = (function() {
