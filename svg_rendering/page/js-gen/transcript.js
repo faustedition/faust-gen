@@ -258,19 +258,32 @@ if(window.FaustTranscript === undefined) {
 	FaustTranscript.Line.prototype.dimension = function() {
 	};
 
+	FaustTranscript.Line.prototype.previousNonIntermediateLine = function() {
+		if (this.pos == 1)
+			return this.parent.children[0];
+		if (this.parent == null || this.pos <= 0)
+			return null;
+		pre = this.parent.children[this.pos - 1];
+
+		if (typeof pre.lineAttrs !== 'undefined' && pre.lineAttrs['interline'] === true)
+			return pre.previousNonIntermediateLine();
+		else
+			return pre;
+	};
+
  	FaustTranscript.Line.prototype.defaultAligns = function () {
 			
 		if ("indent" in this.lineAttrs) {
- 			this.setAlign("hAlign", new FaustTranscript.Align(this, this.parent, this.rotX(), 0, this.lineAttrs["indent"], FaustTranscript.Align.INDENT_ATTR));
-    } else if ("indentCenter" in this.lineAttrs) {
+			this.setAlign("hAlign", new FaustTranscript.Align(this, this.parent, this.rotX(), 0, this.lineAttrs["indent"], FaustTranscript.Align.INDENT_ATTR));
+		} else if ("indentCenter" in this.lineAttrs) {
 			this.setAlign("hAlign", new FaustTranscript.Align(this, this.parent, this.rotX(), 0.5, this.lineAttrs["indentCenter"], FaustTranscript.Align.INDENT_CENTER_ATTR));
-    } else {
- 			this.setAlign("hAlign", new FaustTranscript.Align(this, this.parent, this.rotX(), 0, 0, FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER));
-    }
+		} else {
+			this.setAlign("hAlign", new FaustTranscript.Align(this, this.parent, this.rotX(), 0, 0, FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER));
+		}
 
  		
 		if (this.previous()) {
-			var yourJoint = 1.5;
+			var yourJoint = this.lineAttrs['interline'] ? 0.75 : 1.5;;
 			if (Faust.TranscriptConfiguration.overlay === "overlay") {
 				//yourJoint = ("between" in this.lineAttrs)? 1 : 1;				
 				yourJoint = ("over" in this.lineAttrs)? 0.1 : yourJoint;
@@ -279,7 +292,8 @@ if(window.FaustTranscript === undefined) {
 				yourJoint = ("over" in this.lineAttrs)? 0.5 : yourJoint;
 			}
 									
-			this.setAlign("vAlign", new FaustTranscript.Align(this, this.previous(), this.rotY(), 0, yourJoint, FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER));
+			this.setAlign("vAlign", new FaustTranscript.Align(this, this.previousNonIntermediateLine(), this.rotY(), 0, yourJoint, FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER));
+
 		} else {
 			this.setAlign("vAlign", new FaustTranscript.Align(this, this.parent, this.rotY(), 0, 0, FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER));
     }
