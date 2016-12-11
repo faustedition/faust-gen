@@ -48,6 +48,7 @@ public class DiplomaticConversion {
 
 	public static Path root = Paths.get("data/xml/");
 	public static Path target = Paths.get("target");
+	public static final Path diplomatic_path = target.resolve("www").resolve("transcript").resolve("diplomatic");
 	private static String serverURL;
 
 	private static boolean debugPhantomJS;
@@ -76,6 +77,10 @@ public class DiplomaticConversion {
 			return Paths.get(relPath.subpath(1, relPath.getNameCount()).toString(),
 					MessageFormat.format("page_{0}.{1}", pageNo, extension));
 		}
+		
+		private Path getNewPagePath(final String extension) {
+			return Paths.get(document.basename, MessageFormat.format("page_{0}.{1}", pageNo, extension));
+		}
 
 		public TranscriptPage writeTranscriptJson() {
 			final Path targetPath = getJsonPath();
@@ -102,12 +107,12 @@ public class DiplomaticConversion {
 
 		@Override
 		public String toString() {
-			return MessageFormat.format("{0} page {1}: {2}", document.faustURI, pageNo, document.base.resolve(page));
+			return MessageFormat.format("{0} page {1}: {2}", document.sigil, pageNo, document.base.resolve(page));
 		}
 
 		public boolean buildSVGs() {
 			logger.fine("Converting " + this);
-			final Path resolvedSvgPath = target.resolve("www").resolve("transcript").resolve("diplomatic").resolve(getPagePath("svg"));
+			final Path resolvedSvgPath = diplomatic_path.resolve(getPagePath("svg"));
 			resolvedSvgPath.getParent().toFile().mkdirs();
 			final ArrayList<String> arguments = Lists.newArrayList(
 					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
@@ -136,9 +141,9 @@ public class DiplomaticConversion {
 				String scriptOutput = bufferedReader.lines().distinct().collect(Collectors.joining("\n"));
 				int exitCode = renderProcess.waitFor();
 				if (exitCode != 0) {
-					logger.log(Level.SEVERE, MessageFormat.format("Failed to convert SVG for {0}: Exit Code {1}. Script output:\n{2}", document.base.resolve(page), exitCode, scriptOutput));
+					logger.log(Level.SEVERE, MessageFormat.format("Failed to convert SVG for {0}: Exit Code {1}. Script output:\n{2}", this /* document.base.resolve(page)*/, exitCode, scriptOutput));
 				} else if (!debugPhantomJS && scriptOutput.length() > 2) {
-					logger.log(Level.WARNING, MessageFormat.format("Conversion to SVG for {0} issued messages:\n{1}", document.base.resolve(page), scriptOutput));
+					logger.log(Level.WARNING, MessageFormat.format("Conversion to SVG for {0} issued messages:\n{1}", this /* document.base.resolve(page) */, scriptOutput));
 				}
 				return exitCode != 0;
 			} catch (IOException | InterruptedException e) {
@@ -154,6 +159,7 @@ public class DiplomaticConversion {
 		private Path getJsonPath() {
 			return target.resolve("pages/").resolve(getPagePath("json"));
 		}
+		
 	}
 
 	public static class Document {
@@ -165,6 +171,10 @@ public class DiplomaticConversion {
 		public final Path relPath;
 		/** The faust:// uri for this document */
 		public URI faustURI;
+		/** The sigil **/
+		public String sigil;
+		/** The machine readable version of the sigil */
+		public String basename;
 
 		public Document(final Path path) {
 			this.path = path;
@@ -175,6 +185,8 @@ public class DiplomaticConversion {
 		public Stream<TranscriptPage> transcripts() {
 			try {
 				final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
+				sigil = doc.gotoTag("//idno[@type='faustedition']").getText();
+				basename = sigil.replace("α", "alpha").replaceAll("[^A-Za-z0-9.-]+", "_");
 				base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
 				final Builder<TranscriptPage> builder = Stream.builder();
 				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), tag.rawXpathNumber("count(preceding::page)").intValue()+1)),
