@@ -31,6 +31,7 @@ import java.util.stream.Stream.Builder;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.stream.StreamSource;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -41,6 +42,12 @@ import com.mycila.xmltool.XMLTag;
 
 import de.faustedition.transcript.simple.SimpleTransform;
 import fi.iki.elonen.SimpleWebServer;
+import net.sf.saxon.s9api.Processor;
+import net.sf.saxon.s9api.QName;
+import net.sf.saxon.s9api.SaxonApiException;
+import net.sf.saxon.s9api.XdmAtomicValue;
+import net.sf.saxon.s9api.XsltExecutable;
+import net.sf.saxon.s9api.XsltTransformer;
 
 public class DiplomaticConversion {
 
@@ -230,6 +237,8 @@ public class DiplomaticConversion {
 						.parallel()
 						.map(page -> page.writeTranscriptJson())
 						.collect(Collectors.toList());
+				ImmutableList<TranscriptPage> allPages = ImmutableList.copyOf(transcriptPages);
+				
 				 
 				 
 				int nThreads = Integer.valueOf(System.getProperty("faust.diplo.threads", "0"));
@@ -254,6 +263,8 @@ public class DiplomaticConversion {
 					}
 					transcriptPages = failedConversions;
 				} while (failedPages > 0 && failedPages < totalPages);
+				
+				addCssToSvgs(allPages);
 				
 
 				if (!failedConversions.isEmpty()) {
@@ -309,7 +320,30 @@ public class DiplomaticConversion {
 		logger.log(Level.INFO, MessageFormat.format("... rendering failed for {0} pages:\n\t{1}", Joiner.on("\n\t").join(failedConversions)));
 		return failedConversions;
 	}
+	
+	private static void addCssToSvgs(final List<TranscriptPage> transcripts) throws InterruptedException {
+		logger.info("Creating SVGs with CSS ...");
+		final Processor processor = new Processor(false);
+		try {
+			final XsltExecutable xslt = processor.newXsltCompiler().compile(new StreamSource(new File("src/main/resources/add-svg-stylesheet.xsl")));
+			final URI cssURI = Paths.get("src", "main", "web", "css", "document-transcript.css").toAbsolutePath().toUri();
 
+			for (final TranscriptPage page : transcripts)
+				try {
+					XsltTransformer transformer = xslt.load();
+					transformer.setParameter(new QName("css"), new XdmAtomicValue(cssURI));
+					transformer.setSource(new StreamSource(diplomatic_path.resolve(page.getPagePath("svg")).toFile()));
+					transformer.setDestination(processor.newSerializer(target.resolve("prepared-svg").resolve(page.getNewPagePath("svg")).toFile()));
+					transformer.transform();
+				} catch (SaxonApiException e) {
+					logger.log(Level.WARNING, e, () -> MessageFormat.format("Failed to add CSS to {0}: {1}", page, e.getMessage()));
+				}
+		} catch (SaxonApiException e) {
+			logger.log(Level.SEVERE, e, () -> MessageFormat.format("Failed to configure CSS inclusion: {0}", e.getMessage()));
+		}
+	}
+
+	
 	public static Path resolveFaustUri(final URI uri) {
 		return root.resolve(uri.getPath().substring(1));
 	}
