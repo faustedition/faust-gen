@@ -39,10 +39,17 @@ def read_table(mapping_filename,
 def write_idnos(table, rootdir='../data/xml'):
     for entry in table.itertuples():
         if entry.docpath is None:
-            logger.warn("Skipping %s", entry)
+            logger.warn("Skipping %s: Signature not in edition", entry)
             continue
+
         fullpath = os.path.join(rootdir, entry.docpath)
         md_xml = etree.parse(fullpath)
+        if md_xml.xpath("//f:idno[. = '%s']" % entry.Ident,
+                        namespaces=ns):
+            logger.info("Skipping %s (%s): Already present in %s",
+                        entry.Ident, entry.Index, entry.docpath)
+            continue
+
         first_idno = md_xml.xpath("//f:idno[. = 'GSA %s']" % entry.Index,
                                   namespaces=ns)[0]
         tail = first_idno.tail
