@@ -13,15 +13,26 @@ Attributes:
 
 """
 
-selected_columns = ['Gräf-Nr.', 'Pniower-Nr.', 'Datum.(von)', 'Dokumenttyp', 'Verfasser', 'Adressat', 'Druckort']
-column_labels = ['Gräf', 'Pniower', 'Datum', 'Quellengattung', 'Verfasser', 'Adressat', 'Druckort']
+selected_columns = ['Gräf-Nr.', 'Pniower-Nr.',  'QuZ', ' Biedermann-HerwigNr.',
+                    'Datum.(von)', 'Dokumenttyp', 'Verfasser', 'Adressat', 'Druckort']
+column_labels = ['Gräf', 'Pniower', 'QuZ', 'Bie3',
+                 'Datum', 'Quellengattung', 'Verfasser', 'Adressat', 'Druckort']
 
 
 import pandas as pd
-from lxml import html
+from lxml import html, etree
 import requests
 from getpass import getpass
 import io
+import sys
+
+
+def to_id(row):
+    for column, prefix in [('Gräf', 'graef'), ('Pniower', 'pniower'),
+                           ('QuZ', 'quz'), ('Bie3', 'bie3')]:
+        if not pd.isnull(row[column]):
+            return prefix + '_' + str(row[column])
+
 
 def fetch_table():
     """
@@ -62,7 +73,28 @@ def read_testimonies(buf, **kwargs):
     testimonies = raw_testimonies[selected_columns]
     testimonies.columns = pd.Index(column_labels)
     testimonies.loc[:,'Datum'] = testimonies.loc[:,'Datum'].str.replace('00\.', '')
+    testimonies.loc[:,'ID'] = testimonies.apply(to_id, axis=1)
     return testimonies
+
+def to_xml(testimony_df):
+    ns = "http://www.faustedition.net/ns"
+    NS = "{"+ns+"}"
+    nsmap = {None : ns}
+    root = etree.Element(NS + "testimonies", nsmap=nsmap)
+    root.addprevious(etree.Comment("This document is sporadically re-generated from an Excel sheet in the wiki. Please don't edit it directly"))
+    for __, row in testimony_df.iterrows():
+        row_el = root.makeelement(NS + "testimony")
+        if not pd.isnull(row.ID):
+            row_el.attrib['id'] = row.ID
+        for label, value in row.iteritems():
+            if label is 'ID':
+                continue
+            el = row_el.makeelement(NS + 'field', attrib=dict(label=label))
+            if not pd.isnull(value):
+                el.text = str(value)
+            row_el.append(el)
+        root.append(row_el)
+    return etree.ElementTree(root)
 
 
 def html_table(testimony_df):
@@ -122,8 +154,16 @@ def write_html(output, table):
 
 def main():
     pd.set_option('max_colwidth', 10000)
-    df = read_testimonies(fetch_table())
-    write_html("src/main/web/archive_testimonies.php", html_table(df))
+    if len(sys.argv) > 1:
+        df = read_testimonies(sys.argv[1])
+    else:
+        df = read_testimonies(fetch_table())
+    # write_html("src/main/web/archive_testimonies.php", html_table(df))
+    xml = to_xml(df)
+    xml.write('src/main/xproc/xslt/testimony-table.xml',
+              encoding='utf-8',
+              xml_declaration=True,
+              pretty_print=True)
 
 if __name__ == '__main__':
     main()
