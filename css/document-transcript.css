@@ -3,7 +3,7 @@
 /* global */
 
 svg.diplomatic {
-    font-family: 'Gentium Book Basic';
+    font-family: 'Gentium Plus';
     stroke: black;
     font-size: 11pt;
 }
@@ -64,7 +64,7 @@ svg.diplomatic .element-rdg, svg.diplomatic .element-rdg * {
 /* writing hand / scribes */
 
 svg.diplomatic .text.hand-g {
-	font-family: "Gentium Book Basic";
+	font-family: "Gentium Plus";
 }
 
 svg.diplomatic .text.hand-xx {
