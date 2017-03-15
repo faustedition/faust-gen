@@ -5,3 +5,6 @@ target
 .classpath
 .project
 .settings/
+.ipynb_checkpoints
+.ropeproject
+__pycache__
