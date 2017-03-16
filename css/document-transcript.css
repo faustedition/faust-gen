@@ -132,13 +132,13 @@ svg.diplomatic .text.rewrite {
 svg.diplomatic .text.under {
 	/* opacity: 0.5; */
     font-size: 75%;
-    baseline-shift: sub;
+    /* baseline-shift: sub; */
 }
 
 svg.diplomatic .text.over {
-	/* font-weight: bold; */
+	font-weight: bold;
     font-size: 135%;
-    baseline-shift: super;
+    /* baseline-shift: super; */
 }
 
 svg.diplomatic .text.interline {
