@@ -52,6 +52,9 @@ if(window.Faust === undefined) {
 			// overlay : "overlay",
 			overlay : "none",
 			stripWhitespace : ['overw'],
+			// distance from top of one line to top of the following line
+			lineSpacingValue: "20",
+			lineSpacingUnit: "pt",
 			initialize : function (layoutState) {
 				layoutState.idMap = {};
 			},

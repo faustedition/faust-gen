@@ -152,7 +152,8 @@ if(window.FaustTranscript === undefined) {
 		result.setAttribute('width', '0.1em');
 		result.setAttribute('style', 'visibility: hidden;');
 		//TODO dynamically calculate from context line height
-		var height = String(this.vSpaceHeight * 1.5) + 'em';
+		var height = String(Faust.TranscriptConfiguration.lineSpacingValue * this.vSpaceHeight)
+			+ Faust.TranscriptConfiguration.lineSpacingUnit;
 		result.setAttribute('height', height);
 		return result;
 	};
@@ -199,6 +200,22 @@ if(window.FaustTranscript === undefined) {
 		var line = this.svgDocument().createElementNS(SVG_NS, "g");
 		return line;
 	};
+
+	FaustTranscript.Line.prototype.getExt = function(coordRotation) {
+		var matrix = this.view.viewportElement.createSVGMatrix();
+		// create artificial element with real line width but fixed height
+		var originalLineWidth = this.constructor.superclass.getExt.call(this, 0)
+		var extElement = this.svgDocument().createElementNS(SVG_NS, "rect");
+		this.view.insertBefore(extElement, this.view.childNodes[0]);
+		extElement.setAttribute("width", originalLineWidth);
+		extElement.setAttribute("height", String(Faust.TranscriptConfiguration.lineSpacingValue)
+			+ Faust.TranscriptConfiguration.lineSpacingUnit);
+		matrix = matrix.rotate(coordRotation);
+		var bbox = SvgUtils.boundingBox(extElement, matrix).width;
+		this.view.removeChild(extElement);
+		return bbox;
+	};
+
 
 	FaustTranscript.Text.prototype.createView = function() {
 		// wrapper will contain text decorations

@@ -283,7 +283,7 @@ if(window.FaustTranscript === undefined) {
 
  		
 		if (this.previous()) {
-			var yourJoint = this.lineAttrs['interline'] ? 0.75 : 1.5;;
+			var yourJoint = this.lineAttrs['interline'] ? 0.5 : 1;;
 			if (Faust.TranscriptConfiguration.overlay === "overlay") {
 				//yourJoint = ("between" in this.lineAttrs)? 1 : 1;				
 				yourJoint = ("over" in this.lineAttrs)? 0.1 : yourJoint;
