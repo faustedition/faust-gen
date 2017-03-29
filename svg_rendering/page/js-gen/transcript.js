@@ -258,6 +258,17 @@ if(window.FaustTranscript === undefined) {
 	FaustTranscript.Line.prototype.dimension = function() {
 	};
 
+	FaustTranscript.Line.prototype.numberOfPrecedingIntermediateLines = function() {
+		if (this.parent == null || this.pos <= 0)
+			return 0;
+		pre = this.parent.children[this.pos - 1];
+		if (typeof pre.lineAttrs !== 'undefined' && pre.lineAttrs['interline'] === true)
+			return pre.numberOfPrecedingIntermediateLines() + 1;
+		else
+			return 0;
+	};
+
+	
 	FaustTranscript.Line.prototype.previousNonIntermediateLine = function() {
 		if (this.pos == 1)
 			return this.parent.children[0];
@@ -281,11 +292,14 @@ if(window.FaustTranscript === undefined) {
 			this.setAlign("hAlign", new FaustTranscript.Align(this, this.parent, this.rotX(), 0, 0, FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER));
 		}
 
- 		
+		INTERLINE_DISTANCE = 0.5;
+		REGULAR_LINE_DISTANCE = 1;
+		
 		if (this.previous()) {
-			var yourJoint = this.lineAttrs['interline'] ? 0.5 : 1;;
+			var yourJoint = this.lineAttrs['interline'] ? (this.numberOfPrecedingIntermediateLines() + 1) * INTERLINE_DISTANCE :
+				(Math.max(0, this.numberOfPrecedingIntermediateLines() - 1) * INTERLINE_DISTANCE) + REGULAR_LINE_DISTANCE;
 			if (Faust.TranscriptConfiguration.overlay === "overlay") {
-				//yourJoint = ("between" in this.lineAttrs)? 1 : 1;				
+				//yourJoint = ("between" in this.lineAttrs)? 1 : 1;
 				yourJoint = ("over" in this.lineAttrs)? 0.1 : yourJoint;
 			} else {
 				yourJoint = ("between" in this.lineAttrs)? 0.7 : yourJoint;
