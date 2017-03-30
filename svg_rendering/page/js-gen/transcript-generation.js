@@ -77,7 +77,9 @@ var transcriptGeneration = (function(){
           svgRoot.setAttribute("height", rootBBox.height);
 
 //          document.body.removeChild(renderContainer);
-          callback(renderContainer.firstChild);
+			if (typeof callback !== 'undefined') {
+				callback(renderContainer.firstChild);
+			}
 
         }
       };
