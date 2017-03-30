@@ -91,8 +91,8 @@ if(window.Faust === undefined) {
 
 						var annotationStart = node.annotation.target().range.start;
 						var annotationEnd = node.annotation.target().range.end;
-            var representation;
-            var nrChars;
+						var representation;
+						var nrChars;
 
 						var gapChar = '\u00d7';
 						var gapUncertainChar = '.';
@@ -416,12 +416,17 @@ if(window.Faust === undefined) {
 
 						var rendTokens = annotation.data.rend ? annotation.data.rend.split(' ') : [];
 						var classes = [];
-            var decoration;
+						var decoration;
 
 
 						if (annotation.data.hand) {
 							var hand = annotation.data.hand;
 							classes = classes.concat(classesFromHandValue(hand));
+						} else {
+							// TODO: this is a hack, classes should not be directly copied from the text visual component but
+							// instead data be taken from the annotation model
+							var textClasses = textVC.classes.filter(function(x) {return x.startsWith('hand-') || x.startsWith('material-');})
+							classes = textClasses;
 						}
 
 						if (rendTokens.indexOf('vertical') >= 0 || rendTokens.indexOf('block') >= 0 ) {
