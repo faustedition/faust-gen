@@ -87,51 +87,47 @@ if(window.Faust === undefined) {
 				'expan' : { vc: function(){return new FaustTranscript.InlineViewComponent();}},
 
 				'gap': {
-					vc:  function(node, text, layoutState) {
-
-						var annotationStart = node.annotation.target().range.start;
-						var annotationEnd = node.annotation.target().range.end;
+					text: function(annotation, textVC, layoutState) {
+						1+1;
+						var annotationStart = annotation.target().range.start;
+						var annotationEnd = annotation.target().range.end;
 						var representation;
 						var nrChars;
-
 						var gapChar = '\u00d7';
 						var gapUncertainChar = '.';
-						switch (node.data()["unit"]) {
-							case "chars":
-								if (node.data()['quantity'] && node.data()['precision'] &&
-									node.data()['precision'] === 'medium') {
-									representation = gapChar;
-									for (nrChars=2; nrChars < node.data()["quantity"]; nrChars++) {
-										representation += gapUncertainChar;
-									}
-									return Faust.TranscriptLayout.createText (representation + gapChar,
-										annotationStart, annotationEnd,	text, layoutState);
-								} else if (node.data()['quantity']) {
-									representation = '';
-									for (nrChars=0; nrChars < node.data()["quantity"]; nrChars++) {
-										//representation += '\u2715'; //capital X
-										representation += gapChar; // small X
-									}
-									return Faust.TranscriptLayout.createText (representation, annotationStart,
-										annotationEnd, text, layoutState);
-								} else if(node.data()['atLeast']) {
-									representation = gapChar;
-									for (nrChars=2; nrChars < node.data()["atLeast"]; nrChars++) {
-										representation += gapUncertainChar;
-									}
-									return Faust.TranscriptLayout.createText (representation + gapChar, annotationStart,
-										annotationEnd, text, layoutState);
-
-								} else {
-									throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "Please specify either @qunatity or @atLeast");
+						switch (annotation.data["unit"]) {
+						case "chars":
+							if (annotation.data['quantity'] && annotation.data['precision'] &&
+								annotation.data['precision'] === 'medium') {
+								representation = gapChar;
+								for (nrChars=2; nrChars < annotation.data["quantity"]; nrChars++) {
+									representation += gapUncertainChar;
 								}
-								break;
-							default:
-								throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "Invalid unit for gap element! Use 'chars'!");
+								representation += gapChar;
+								textVC.text = representation;
+							} else if (annotation.data['quantity']) {
+								representation = '';
+								for (nrChars=0; nrChars < annotation.data["quantity"]; nrChars++) {
+									//representation += '\u2715'; //capital X
+									representation += gapChar; // small X
+								}
+								textVC.text = representation;
+							} else if(annotation.data['atLeast']) {
+								representation = gapChar;
+								for (nrChars=2; nrChars < annotation.data["atLeast"]; nrChars++) {
+									representation += gapUncertainChar;
+								}
+								representation += gapChar;
+								textVC.text = representation;
+							} else {
+								throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "Please specify either @qunatity or @atLeast");
+							}
+							break;
+						default:
+							throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "Invalid unit for gap element! Use 'chars'!");
 						}
-					}
-				},
-
+					}},
+				
 				'grBrace':  {
 
 					vc: function() {}
