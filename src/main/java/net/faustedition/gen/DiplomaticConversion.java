@@ -214,7 +214,8 @@ public class DiplomaticConversion {
 		final SimpleWebServer webServer = new SimpleWebServer("localhost", 0, new File("svg_rendering/page"), true);
 		webServer.start(60, true);
 		try {
-			serverURL = new URL("http", "localhost", webServer.getListeningPort(), "/transcript-generation.html").toString();
+			final int listeningPort = Integer.valueOf((String) properties.getOrDefault("faust.diplo.port", Integer.toString(webServer.getListeningPort())));
+			serverURL = new URL("http", "localhost", listeningPort, "/transcript-generation.html").toString();
 			logger.info(MessageFormat.format("Web server runs on {0}", serverURL));
 			baseCmdLine = ImmutableList.of(
 					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 

@@ -11,6 +11,7 @@
 		<upload.url>beta.faustedition.net:/var/www/dev</upload.url>
 		<faust.diplo.allowedFailures>10</faust.diplo.allowedFailures>
 		<faust.diplo.server>false</faust.diplo.server> <!-- Run only the web server, don't actually convert -->
+		<faust.diplo.port>62436</faust.diplo.port> <!-- Run only the web server, don't actually convert -->
 		<faust.diplo.debug>false</faust.diplo.debug>   <!-- Debug phantomjs, produces massive output -->
 		<exist.app-name>faust-dev</exist.app-name>
 	</properties>
@@ -237,8 +238,8 @@
 				 see the comment there.
 				
 				 -->
-				 <!--
-					<plugin>
+				 
+<!--					<plugin>
 						<groupId>com.github.klieber</groupId>
 						<artifactId>phantomjs-maven-plugin</artifactId>
 						<version>0.7</version>
@@ -251,8 +252,9 @@
 							</execution>
 						</executions>
 					</plugin>
-							
-				 -->
+-->							
+				 
+					
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-dependency-plugin</artifactId>
@@ -282,6 +284,7 @@
 							</execution>
 						</executions>
 					</plugin>
+					
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
@@ -297,20 +300,21 @@
 									<environmentVariables>
 										<LANG>en_US.UTF-8</LANG>
 										<LC_ALL>en_US.UTF-8</LC_ALL>
-										<SLIMERJSLAUNCHER>${project.build.directory}/dependency/firefox/firefox</SLIMERJSLAUNCHER>
+										<SLIMERJSLAUNCHER>/Applications/Firefox 38.app/Contents/MacOS/firefox</SLIMERJSLAUNCHER>
 									</environmentVariables>
 									<executable>java</executable>
 									<arguments>
 										<argument>-classpath</argument>
 										<classpath/>
 										<!-- For PhantomJS: -->										
-										<!-- <argument>-Dphantomjs.binary=${phantomjs.binary}</argument> -->
+<!--										<argument>-Dphantomjs.binary=/Users/moz/bin/phantomjs</argument> -->
 										<!-- For SlimerJS instead: -->
 										<argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-0.10.1/slimerjs</argument>
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
+										<argument>-Dfaust.diplo.port=${faust.diplo.port}</argument>
 										<argument>-Dfaust.diplo.debug=${faust.diplo.debug}</argument>
-										<argument>net.faustedition.gen.DiplomaticConversion</argument>
+										<argument>net.faustedition.gen.DiplomaticConversion</argument> 
 									</arguments>
 								</configuration>
 							</execution>
