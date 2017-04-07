@@ -211,11 +211,11 @@ public class DiplomaticConversion {
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
 		onlyWebServer = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.server", "false"));
 		debugPhantomJS = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.debug", "false"));
-		final SimpleWebServer webServer = new SimpleWebServer("localhost", 0, new File("svg_rendering/page"), true);
+		final int listeningPort = Integer.valueOf((String) properties.getOrDefault("faust.diplo.port", "0"));
+		final SimpleWebServer webServer = new SimpleWebServer("localhost", listeningPort, new File("svg_rendering/page"), true);
 		webServer.start(60, true);
 		try {
-			final int listeningPort = Integer.valueOf((String) properties.getOrDefault("faust.diplo.port", Integer.toString(webServer.getListeningPort())));
-			serverURL = new URL("http", "localhost", listeningPort, "/transcript-generation.html").toString();
+			serverURL = new URL("http", "localhost", webServer.getListeningPort(), "/transcript-generation.html").toString();
 			logger.info(MessageFormat.format("Web server runs on {0}", serverURL));
 			baseCmdLine = ImmutableList.of(
 					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
