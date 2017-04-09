@@ -300,14 +300,14 @@
 									<environmentVariables>
 										<LANG>en_US.UTF-8</LANG>
 										<LC_ALL>en_US.UTF-8</LC_ALL>
-										<SLIMERJSLAUNCHER>/Applications/Firefox 38.app/Contents/MacOS/firefox</SLIMERJSLAUNCHER>
+										<SLIMERJSLAUNCHER>${project.build.directory}/dependency/firefox/firefox</SLIMERJSLAUNCHER>
 									</environmentVariables>
 									<executable>java</executable>
 									<arguments>
 										<argument>-classpath</argument>
 										<classpath/>
 										<!-- For PhantomJS: -->										
-<!--										<argument>-Dphantomjs.binary=/Users/moz/bin/phantomjs</argument> -->
+										<!-- <argument>-Dphantomjs.binary=${phantomjs.binary}</argument> -->
 										<!-- For SlimerJS instead: -->
 										<argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-0.10.1/slimerjs</argument>
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
