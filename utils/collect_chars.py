@@ -187,6 +187,8 @@ def getargparser():
                       help="Font files to analyze")
     font.add_argument('-k', '--keep-unused', action='store_true',
                       help='Keep unused characters in the table')
+    font.add_argument('-m', '--missing', action='store_true',
+                      help="Only include characters that are missing from at least one font")
     return p
 
 def main():
@@ -248,6 +250,10 @@ def main():
 
     if not(options.keep_unused):
         summary.dropna(subset=['count'], inplace=True)
+
+    if options.missing:
+        summary = summary[~summary.character.isnull() &
+                          summary.iloc[:,3:].isnull().any(axis=1)]
 
     summary.sort_values(by='count', ascending=False, inplace=True)
 
