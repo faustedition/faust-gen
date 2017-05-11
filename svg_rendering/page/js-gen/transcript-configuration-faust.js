@@ -58,7 +58,8 @@ if(window.Faust === undefined) {
 			initialize : function (layoutState) {
 				layoutState.idMap = {};
 			},
-	    names: {
+			forceFontLoading: false,
+			names: {
 				'anchor': {
 					vc: function(node, text, layoutState) {
 						//use empty text element as an anchor

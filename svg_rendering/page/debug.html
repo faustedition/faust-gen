@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset='utf-8'>
-    <link rel="stylesheet" href="css/webfonts.css">
+   <link rel="stylesheet" href="css/webfonts.css"> 
     <link rel="stylesheet" href="css/document-text.css">
     <link rel="stylesheet" href="css/document-transcript.css">
     <link rel="stylesheet" href="css/document-transcript-highlight-hands.css">
@@ -96,30 +96,34 @@
       var fontError = false;
       var webFontConfig = {
         custom: {
-          families: ['Ubuntu', 'Ubuntu Monospace', 'Gentium Plus']
-          // we don not need to specify urls as they are specified in the css files
+          families: ['Ubuntu', 'Ubuntu Monospace', 'Gentium Plus'],
+                                           // we don not need to specify urls as they are specified in the css files
+                                               urls: ['/css/webfonts.css']
         },
         // do not time out if font can't be loaded
-        timeout: Number.MAX_VALUE,
+        timeout: 10, //Number.MAX_VALUE,
         active: function() {
           // if we made it this far without 'fontinactive' occurring, then all
           // fonts have been loaded
-          if (!fontError) {
+          if (!Faust.TranscriptConfiguration.forceFontLoading || !fontError) {
             Faust.io(json, transcriptGeneration.createDiplomaticSvg);
-          } else {}
+          } else {
+              // do not try to render page
+          }
 
         },
         fontinactive: function(familyName, fvd) {
           // font could not be loaded, abort
-          fontError = true;
-          var message = "Error: web font could not be loaded: " + familyName + " " + fvd;
-
-          var htmlMessage = document.createElement('div');
-          htmlMessage.innerHTML = message;
-          document.body.append(htmlMessage);
-          throw(message);
+          if (Faust.TranscriptConfiguration.forceFontLoading) {
+              fontError = true;
+              var message = "Error: web font could not be loaded: " + familyName + " " + fvd;
+              var htmlMessage = document.createElement('div');
+              htmlMessage.innerHTML = message;
+              document.body.append(htmlMessage);
+              throw(message);
+          }
         }
-	  };
+          };
 
 WebFont.load(webFontConfig);
 </script>
