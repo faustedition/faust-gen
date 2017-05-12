@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/basic_layout.css">
 
     <script type="text/javascript" src="./js-gen/webfontloader.js"></script>
+    <script type="text/javascript" src="./js-gen/loadwebfonts.js"></script>
     <script type="text/javascript" src="./js-gen/Y_extract.js"></script>
     <script type="text/javascript" src="./js-gen/svg-utils.js"></script>
     <script type="text/javascript" src="./js-gen/faust.js"></script>
@@ -92,40 +93,7 @@
       var help = document.getElementById("debughelp");
       help.parentNode.removeChild(help);
 
-      
-      var fontError = false;
-      var webFontConfig = {
-        custom: {
-          families: ['Ubuntu', 'Ubuntu Monospace', 'Gentium Plus'],
-                                           // we don not need to specify urls as they are specified in the css files
-                                               urls: ['/css/webfonts.css']
-        },
-        // do not time out if font can't be loaded
-        timeout: 10, //Number.MAX_VALUE,
-        active: function() {
-          // if we made it this far without 'fontinactive' occurring, then all
-          // fonts have been loaded
-          if (!Faust.TranscriptConfiguration.forceFontLoading || !fontError) {
-            Faust.io(json, transcriptGeneration.createDiplomaticSvg);
-          } else {
-              // do not try to render page
-          }
-
-        },
-        fontinactive: function(familyName, fvd) {
-          // font could not be loaded, abort
-          if (Faust.TranscriptConfiguration.forceFontLoading) {
-              fontError = true;
-              var message = "Error: web font could not be loaded: " + familyName + " " + fvd;
-              var htmlMessage = document.createElement('div');
-              htmlMessage.innerHTML = message;
-              document.body.append(htmlMessage);
-              throw(message);
-          }
-        }
-          };
-
-WebFont.load(webFontConfig);
-</script>
+      Faust.Fonts.active(function(){Faust.io(json, transcriptGeneration.createDiplomaticSvg);});
+    </script>
   </body>
 </html>
