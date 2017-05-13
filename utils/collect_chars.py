@@ -116,7 +116,11 @@ def font_support_table(fontfile: str) -> pd.DataFrame:
     Runs otfinfo -u on the fontfile to get a table describing the fonts' char support
     """
     def charinfo(line):
-        codepoint_str, glyphno, glyphname = line.split()
+        try:
+            codepoint_str, glyphno, glyphname = line.split()
+        except ValueError:
+            codepoint_str, glyphno = line.split()
+            glyphname = "[" + codepoint_str + "]"
         codepoint = int(codepoint_str[3:], base=16)
         return "{:>04X}".format(codepoint), chr(codepoint), glyphno, glyphname
     otfinfo = check_output(['otfinfo', '-u', fontfile], universal_newlines=True)
