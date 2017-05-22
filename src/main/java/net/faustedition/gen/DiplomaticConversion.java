@@ -220,7 +220,7 @@ public class DiplomaticConversion {
 			logger.info(MessageFormat.format("Web server runs on {0}", serverURL));
 			baseCmdLine = ImmutableList.of(
 					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
-					"--profile", profile,
+					"--profile", profile.toString(),
 					debugPhantomJS? "--debug=true" : "",
 					"rendersvgs.js",
 					serverURL);
