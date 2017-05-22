@@ -55,6 +55,7 @@ public class DiplomaticConversion {
 
 	public static Path root = Paths.get("data/xml/");
 	public static Path target = Paths.get("target");
+	public static Path profile = target.resolve("profile");
 	public static final Path diplomatic_path = target.resolve("www").resolve("transcript").resolve("diplomatic");
 	private static String serverURL;
 
@@ -219,6 +220,7 @@ public class DiplomaticConversion {
 			logger.info(MessageFormat.format("Web server runs on {0}", serverURL));
 			baseCmdLine = ImmutableList.of(
 					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
+					"--profile", profile,
 					debugPhantomJS? "--debug=true" : "",
 					"rendersvgs.js",
 					serverURL);
