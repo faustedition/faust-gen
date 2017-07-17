@@ -154,8 +154,9 @@ svg.diplomatic .text.sub {
 }
 
 .text.inbetween {
-    baseline-shift: super;
-
+    font-weight: bold;
+    /* font-size: 135%; */
+    /* baseline-shift: super; */
 }
 
 svg.diplomatic .bgBox {
