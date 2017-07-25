@@ -51,12 +51,20 @@ import net.sf.saxon.s9api.XsltTransformer;
 
 public class DiplomaticConversion {
 
+
+	private static final String PROPERTY = System.getProperty("faust.diplo.documentroot", "document");
+
+	private static final URI cssURI = Paths.get(System.getProperty("faust.diplo.css", "src/main/web/css/document-transcript.css")).toAbsolutePath().toUri();
+
 	private static Logger logger = Logger.getLogger(DiplomaticConversion.class.getName());
 
-	public static Path root = Paths.get("data/xml/");
+	public static Path root = Paths.get(System.getProperty("faust.diplo.root", "data/xml/"));
 	public static Path target = Paths.get("target");
+
+	private static final Path prepared_svg = target.resolve(System.getProperty("faust.diplo.prepared-svg", "prepared-svg"));
 	public static Path profile = target.resolve("profile");
 	public static final Path diplomatic_path = target.resolve("www").resolve("transcript").resolve("diplomatic");
+	private static final File renderWebapp = new File(System.getProperty("faust.diplo.webapp", "svg_rendering/page"));
 	private static String serverURL;
 
 	private static boolean debugPhantomJS;
@@ -213,7 +221,7 @@ public class DiplomaticConversion {
 		onlyWebServer = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.server", "false"));
 		debugPhantomJS = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.debug", "false"));
 		final int listeningPort = Integer.valueOf((String) properties.getOrDefault("faust.diplo.port", "0"));
-		final SimpleWebServer webServer = new SimpleWebServer("localhost", listeningPort, new File("svg_rendering/page"), true);
+		final SimpleWebServer webServer = new SimpleWebServer("localhost", listeningPort, renderWebapp, true);
 		webServer.start(60, true);
 		try {
 			serverURL = new URL("http", "localhost", webServer.getListeningPort(), "/transcript-generation.html").toString();
@@ -267,7 +275,7 @@ public class DiplomaticConversion {
 					transcriptPages = failedConversions;
 				} while (failedPages > 0 && failedPages < totalPages);
 				
-				addCssToSvgs(allPages);
+				postprocessPrintSVGs(allPages);
 				
 
 				if (!failedConversions.isEmpty()) {
@@ -324,19 +332,18 @@ public class DiplomaticConversion {
 		return failedConversions;
 	}
 	
-	private static void addCssToSvgs(final List<TranscriptPage> transcripts) throws InterruptedException {
+	private static void postprocessPrintSVGs(final List<TranscriptPage> transcripts) throws InterruptedException {
 		logger.info("Creating SVGs with CSS ...");
 		final Processor processor = new Processor(false);
 		try {
-			final XsltExecutable xslt = processor.newXsltCompiler().compile(new StreamSource(new File("src/main/resources/add-svg-stylesheet.xsl")));
-			final URI cssURI = Paths.get("src", "main", "web", "css", "document-transcript.css").toAbsolutePath().toUri();
+			final XsltExecutable xslt = processor.newXsltCompiler().compile(new StreamSource(new File("src/main/resources/postprocess-svgs.xsl")));
 
 			for (final TranscriptPage page : transcripts)
 				try {
 					XsltTransformer transformer = xslt.load();
 					transformer.setParameter(new QName("css"), new XdmAtomicValue(cssURI));
 					transformer.setSource(new StreamSource(diplomatic_path.resolve(page.getPagePath("svg")).toFile()));
-					transformer.setDestination(processor.newSerializer(target.resolve("prepared-svg").resolve(page.getNewPagePath("svg")).toFile()));
+					transformer.setDestination(processor.newSerializer(prepared_svg.resolve(page.getNewPagePath("svg")).toFile()));
 					transformer.transform();
 				} catch (SaxonApiException e) {
 					logger.log(Level.WARNING, e, () -> MessageFormat.format("Failed to add CSS to {0}: {1}", page, e.getMessage()));
@@ -352,7 +359,7 @@ public class DiplomaticConversion {
 	}
 
 	private static Stream<Document> getDocuments() throws IOException {
-		return Files.walk(root.resolve("document")).filter(path -> path.toString().endsWith(".xml")).map(
+		return Files.walk(root.resolve(PROPERTY)).filter(path -> path.toString().endsWith(".xml")).map(
 				path -> new Document(path));
 	}
 }

@@ -220,8 +220,10 @@
 	
 	<profiles>
 		<profile>
-			<id>svg</id>
-			<activation><activeByDefault>true</activeByDefault></activation>
+			<id>svg-base</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>			
+			</activation>
 			<build>
 				<plugins>
 				
@@ -284,7 +286,28 @@
 							</execution>
 						</executions>
 					</plugin>
+				</plugins>
+			</build>
+		</profile>
 					
+		<profile>
+			<id>svg-print</id>
+			<activation><activeByDefault>true</activeByDefault></activation>
+			<build>
+				<resources>
+					<resource>
+						<directory>svg_rendering/page</directory>
+						<filtering>false</filtering>
+						<targetPath>${project.build.directory}/preprint-rendering</targetPath>						
+					</resource>
+					<resource>
+						<directory>src/main/preprint-web</directory>
+						<filtering>false</filtering>
+						<targetPath>${project.build.directory}/preprint-rendering</targetPath>
+					</resource>
+				</resources>
+				
+				<plugins>
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
@@ -314,7 +337,11 @@
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
 										<argument>-Dfaust.diplo.port=${faust.diplo.port}</argument>
 										<argument>-Dfaust.diplo.debug=${faust.diplo.debug}</argument>
+										<argument>-Dfaust.diplo.webapp=${project.build.directory}/preprint-rendering</argument>
+										<argument>-Dfaust.diplo.documentroot=document/faust/2</argument>
+										<argument>-Dfaust.diplo.transcript_www=www-preprint</argument>
 										<argument>net.faustedition.gen.DiplomaticConversion</argument> 
+			
 									</arguments>
 								</configuration>
 							</execution>
@@ -324,6 +351,7 @@
 				</plugins>
 			</build>
 		</profile>
+		
 		
 		<profile>
 			<id>sources</id>
