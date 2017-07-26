@@ -1,11 +1,9 @@
-/* diplomatic transcript */
-
 /* global */
 
 svg.diplomatic {
     font-family: 'Gentium Plus';
-    stroke: black;
-    font-size: 11pt;
+    font-size: 13pt;
+    letter-spacing: 0.020em;
 }
 
 #editor-toolbar {
@@ -15,14 +13,14 @@ svg.diplomatic {
 }
 
 #editor-toolbar a {
-  color: #90ee90;
-  margin-right: 3em;
+    color: #90ee90;
+    margin-right: 3em;
 }
 
 
 #error-display {
-  background-color: red;
-  color: white; 
+   background-color: red;
+   color: white; 
 }
 
 /* drag 'n drop of zones */
@@ -32,22 +30,25 @@ svg.diplomatic g.Zone {
   -moz-user-select: none;-webkit-user-select: none;
 }
 
-/*
+
 svg.diplomatic g.Zone:hover {
   stroke: black;
   stroke-opacity: 0.3;
   stroke-width: 1;
 }
-*/
+
 
 /* text */
 
+/* Ubuntu Light */
 svg.diplomatic .text {
-    font-size: 11pt;
     font-family: "Ubuntu";
+    font-size: 12pt;
     fill: black;
     stroke: none;
     stroke-opacity: 0;
+    font-weight: 100;
+    letter-spacing: 0.020em;
 }
 
 /* hidden elements */
@@ -64,7 +65,8 @@ svg.diplomatic .element-rdg, svg.diplomatic .element-rdg * {
 /* writing hand / scribes */
 
 svg.diplomatic .text.hand-g {
-	font-family: "Gentium Plus";
+    font-family: "Gentium Plus";
+    font-size: 13pt;
 }
 
 svg.diplomatic .text.hand-xx {
@@ -75,27 +77,22 @@ svg.diplomatic .text.hand-xx {
 
 svg.diplomatic .material-bl {
     fill: #808080;
-    stroke: #808080;
 }
 
 svg.diplomatic .material-t {
     fill: black;
-    stroke:black;
 }
 
 svg.diplomatic .material-ro {
     fill: #A02020;
-    stroke: #A02020;
 }
 
 svg.diplomatic .material-tr {
     fill: #A02020;
-    stroke: #A02020;
 }
 
 svg.diplomatic .material-blau {
     fill: #5050C0;
-    stroke: #5050C0;
 }
 
 /* script */
@@ -116,47 +113,51 @@ svg.diplomatic rect.patchBackground {
 
 
 svg.diplomatic .element-patch {
-  transition: opacity 0.5s ease-out;
+    transition: opacity 0.5s ease-out;
 }
 
 svg.diplomatic .patch-transparent {
-  opacity: 0.1;
+    opacity: 0.1;
 } 
 
 /* various annotations */
-
 svg.diplomatic .text.rewrite {
 	font-weight: bold;
 }
 
-svg.diplomatic .text.under {
-	/* opacity: 0.5; */
-    font-size: 9pt;
-    /* baseline-shift: sub; */
-}
-
+/* Dieses Zeichen überschreibt */
 svg.diplomatic .text.over {
-	font-weight: bold;
-    /* font-size: 135%; */
-    /* baseline-shift: super; */
+    letter-spacing: 0.021em !important; 
+    baseline-shift: +9px;
 }
 
+/* Dieses Zeichen ist überschrieben */
+svg.diplomatic .text.under {
+    letter-spacing: 0.022em !important; 
+    baseline-shift: -3.5px;
+}
+
+/* Zwischenzeile */
 svg.diplomatic .text.interline {
 	font-size: 9pt;
 }
 
+/* ??? */
 svg.diplomatic .text.sup {
+    letter-spacing: 0.018em !important;
     baseline-shift: super;
 }
 
+/* ??? */
 svg.diplomatic .text.sub {
+    letter-spacing: 0.019em !important;
     baseline-shift: sub;
 }
 
+/* Zwischen Wort Schreibung */
 .text.inbetween {
-    font-weight: bold;
-    /* font-size: 135%; */
-    /* baseline-shift: super; */
+    letter-spacing: 0.023em !important;
+    baseline-shift: +9px;
 }
 
 svg.diplomatic .bgBox {
@@ -181,10 +182,13 @@ svg.diplomatic line.text-decoration-type-underdots {
     stroke-width: 0.2em !important;
 }
 
+/* Rasur wird als Streichung dargestellt*/
 svg.diplomatic .text-decoration-type-erase text {
-    fill: white !important;
+    fill: black !important;
     fill-opacity: 1 !important;
-    stroke: none !important;
+    text-decoration: line-through;
+    letter-spacing: 0.024em !important; 
+
 }
 
 /* graphical elements */
