@@ -300,14 +300,35 @@
 						<filtering>false</filtering>
 						<targetPath>${project.build.directory}/preprint-rendering</targetPath>						
 					</resource>
-					<resource>
-						<directory>src/main/preprint-web</directory>
-						<filtering>false</filtering>
-						<targetPath>${project.build.directory}/preprint-rendering</targetPath>
-					</resource>
 				</resources>
 				
 				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>3.0.2</version>
+						<configuration>
+							<overwrite>true</overwrite>
+						</configuration>
+						<executions>
+							<execution>
+								<id>copy-preprint-specific-resources</id>
+								<goals><goal>copy-resources</goal></goals>
+								<phase>compile</phase>
+								<configuration>
+									<overwrite>true</overwrite>
+									<outputDirectory>${project.build.directory}/preprint-rendering</outputDirectory>
+									<resources>
+										<resource>
+											<directory>src/main/preprint-web</directory>
+											<filtering>false</filtering>						
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
@@ -340,6 +361,7 @@
 										<argument>-Dfaust.diplo.webapp=${project.build.directory}/preprint-rendering</argument>
 										<argument>-Dfaust.diplo.documentroot=document/faust/2</argument>
 										<argument>-Dfaust.diplo.transcript_www=www-preprint</argument>
+										<argument>-Dfaust.diplo.prepared-svg=preprint-svg</argument>
 										<argument>net.faustedition.gen.DiplomaticConversion</argument> 
 			
 									</arguments>

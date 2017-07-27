@@ -1,3 +1,26 @@
+/* diplomatic transcript */
+
+/*
+----------------------------
+000_header_v5.css
+----------------------------
+DR+ 26-07-2017
+letter-spacing: 0.0xxem als Token für ILLU;
+
+Folgende Änderungen vornehmen:
+
+FIND: 	<text
+REPL:	\r<text
+
+FIND: 	<rect.*?/>
+REPL:	
+
+		<ILLU_Sonderzeichen>
+FIND: 	[\x{0304}\x{2308}\x{2309}\x{2E13}\x{203F}\x{22A2}\x{0301}\x{20B0}\x{22A8}\x{00E9}\x{035C}\x{23B1}\x{1EBD}\x{2193}\x{2191}\x{07E0}]
+REPL:	\$\0
+
+---------------------------
+*/
 /* global */
 
 svg.diplomatic {
@@ -198,4 +221,11 @@ svg.diplomatic ellipse.inline-decoration-type-circle {
     stroke: black;
     stroke-width: 0.1em;
     fill: none;
+}
+
+svg.diplomatic .symbola {
+	font-family: "Symbola";
+}
+svg.diplomatic .unknown-char {
+	background: yellow;
 }

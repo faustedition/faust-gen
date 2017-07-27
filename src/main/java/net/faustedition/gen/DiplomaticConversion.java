@@ -54,7 +54,8 @@ public class DiplomaticConversion {
 
 	private static final String PROPERTY = System.getProperty("faust.diplo.documentroot", "document");
 
-	private static final URI cssURI = Paths.get(System.getProperty("faust.diplo.css", "src/main/web/css/document-transcript.css")).toAbsolutePath().toUri();
+	private static final File renderWebapp = new File(System.getProperty("faust.diplo.webapp", "svg_rendering/page"));
+	private static final URI cssURI = Paths.get(System.getProperty("faust.diplo.css", new File(renderWebapp, "css/document-transcript.css").toString())).toAbsolutePath().toUri();
 
 	private static Logger logger = Logger.getLogger(DiplomaticConversion.class.getName());
 
@@ -63,8 +64,8 @@ public class DiplomaticConversion {
 
 	private static final Path prepared_svg = target.resolve(System.getProperty("faust.diplo.prepared-svg", "prepared-svg"));
 	public static Path profile = target.resolve("profile");
-	public static final Path diplomatic_path = target.resolve("www").resolve("transcript").resolve("diplomatic");
-	private static final File renderWebapp = new File(System.getProperty("faust.diplo.webapp", "svg_rendering/page"));
+	public static final Path wwwout_path = target.resolve(System.getProperty("faust.diplo.transcript_www", "www"));
+	public static final Path diplomatic_path = wwwout_path.resolve("transcript").resolve("diplomatic");
 	private static String serverURL;
 
 	private static boolean debugPhantomJS;
@@ -142,7 +143,7 @@ public class DiplomaticConversion {
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
 				arguments.add(imageLinkPath.get().toString());
-				Path resolvedOverlayPath = target.resolve("www").resolve("transcript").resolve("overlay").resolve(getPagePath("svg"));
+				Path resolvedOverlayPath = wwwout_path.resolve("transcript").resolve("overlay").resolve(getPagePath("svg"));
 				resolvedOverlayPath.getParent().toFile().mkdirs();
 				arguments.add(resolvedOverlayPath.toString());
 			} else {
