@@ -199,19 +199,12 @@ svg.diplomatic line.text-decoration-type-underdots {
     stroke-linecap: round;
 }
 
-.text.erase {
-    fill: none !important;
-    stroke-opacity: 1 !important;
-    stroke-width: 0.2em !important;
-}
-
 /* Rasur wird als Streichung dargestellt*/
-svg.diplomatic .text-decoration-type-erase text {
+svg.diplomatic .text.erase, svg.diplomatic .text-decoration-type-erase text {
     fill: black !important;
     fill-opacity: 1 !important;
     text-decoration: line-through;
     letter-spacing: 0.024em !important; 
-
 }
 
 /* graphical elements */
