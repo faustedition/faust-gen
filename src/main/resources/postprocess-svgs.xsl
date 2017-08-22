@@ -58,7 +58,7 @@
 
 		Since this will be rendered differently in print, the inner <g/> can be deleted.
 	-->
-	<xsl:template match="g[tokenize(@class, '\s+') = 'text-decoration-type-erase' 
+	<xsl:template match="g[tokenize(@class, '\s+') = ('text-decoration-type-erase', 'text-decoration-type-rewrite') 
 							and text 
 							and preceding-sibling::*[1]/self::text 
 							and text/text() = preceding-sibling::text[1]/text()]"/>
