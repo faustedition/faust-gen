@@ -100,22 +100,27 @@ svg.diplomatic .text.hand-xx {
 
 svg.diplomatic .material-bl {
     fill: #808080;
+    stroke: #808080;
 }
 
 svg.diplomatic .material-t {
     fill: black;
+    stroke: black;
 }
 
 svg.diplomatic .material-ro {
     fill: #A02020;
+    stroke: #A02020;
 }
 
 svg.diplomatic .material-tr {
     fill: #A02020;
+    stroke: #A02020;
 }
 
 svg.diplomatic .material-blau {
     fill: #5050C0;
+    stroke: #5050C0;
 }
 
 /* script */
