@@ -339,7 +339,7 @@
 					
 		<profile>
 			<id>svg-print</id>
-			<activation><activeByDefault>false</activeByDefault></activation>
+			<activation><activeByDefault>true</activeByDefault></activation>
 			<build>
 				<resources>
 					<resource>
