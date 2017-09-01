@@ -5,8 +5,8 @@
 [submodule "src/main/xproc"]
 	path = src/main/xproc
 	url = git://github.com/faustedition/faust-gen-html.git
-	branch = master
+	branch = beta.3-maint
 [submodule "src/main/web"]
 	path = src/main/web
 	url = git://github.com/faustedition/faust-web
-	branch = master
+	branch = beta.3-maint
