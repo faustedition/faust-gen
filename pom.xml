@@ -470,6 +470,7 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<executions>
 							<execution>
+								<id>xproc</id>
 								<goals><goal>java</goal></goals>
 								<phase>compile</phase>
 								<configuration>								

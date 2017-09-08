@@ -34,7 +34,6 @@
 	<xsl:template match="/svg">
 		<xsl:copy>
 			<xsl:apply-templates select="@*"/>
-			<xsl:message select="concat('Including CSS ', $css)"/>			
 			<defs>
 				<style type="text/css">
 					<xsl:copy-of select="$css-content"/>
