@@ -18,50 +18,50 @@
  */
 
 if (window.Faust === undefined) {
-	window.Faust = {};
+    window.Faust = {};
 }
 
 (function (Faust) {
 
-	Fonts = {};
-	Fonts.active = function (callback) {
+    Fonts = {};
+    Fonts.active = function (callback) {
 
 
-		var fontError = false;
-		var webFontConfig = {
-			custom: {
-				families: ['Ubuntu', 'Ubuntu Monospace', 'Gentium Plus'],
-				// we don not need to specify urls as they are specified in the css files
-				urls: ['/css/webfonts.css']
-			},
-			// do not time out if font can't be loaded
-			timeout: 10, //Number.MAX_VALUE,
-			active: function () {
-				// if we made it this far without 'fontinactive' occurring, then all
-				// fonts have been loaded
-				if (!Faust.TranscriptConfiguration.forceFontLoading || !fontError) {
-					callback();
-				} else {
-					// do not try to render page
-				}
+        var fontError = false;
+        var webFontConfig = {
+            custom: {
+                families: ['Ubuntu', 'Ubuntu Monospace', 'Gentium Plus'],
+                // we don not need to specify urls as they are specified in the css files
+                urls: ['/css/webfonts.css']
+            },
+            // do not time out if font can't be loaded
+            timeout: 10, //Number.MAX_VALUE,
+            active: function () {
+                // if we made it this far without 'fontinactive' occurring, then all
+                // fonts have been loaded
+                if (!Faust.TranscriptConfiguration.forceFontLoading || !fontError) {
+                    callback();
+                } else {
+                    // do not try to render page
+                }
 
-			},
-			fontinactive: function (familyName, fvd) {
-				// font could not be loaded, abort
-				if (Faust.TranscriptConfiguration.forceFontLoading) {
-					fontError = true;
-					var message = "Error: web font could not be loaded: " + familyName + " " + fvd;
-					var htmlMessage = document.createElement('div');
-					htmlMessage.innerHTML = message;
-					document.body.append(htmlMessage);
-					throw(message);
-				}
-			}
-		};
+            },
+            fontinactive: function (familyName, fvd) {
+                // font could not be loaded, abort
+                if (Faust.TranscriptConfiguration.forceFontLoading) {
+                    fontError = true;
+                    var message = "Error: web font could not be loaded: " + familyName + " " + fvd;
+                    var htmlMessage = document.createElement('div');
+                    htmlMessage.innerHTML = message;
+                    document.body.append(htmlMessage);
+                    throw(message);
+                }
+            }
+        };
 
-		WebFont.load(webFontConfig);
-	};
+        WebFont.load(webFontConfig);
+    };
 
-	Faust.Fonts = Fonts;
+    Faust.Fonts = Fonts;
 })(Faust);
 

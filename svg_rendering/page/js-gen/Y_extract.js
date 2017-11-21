@@ -13,7 +13,7 @@ Y.Object = {};
  * @param {object} sx static properties to add/override.
  * @return {object} the extended object.
  */
-Y.extend = function(r, s, px, sx) {
+Y.extend = function (r, s, px, sx) {
     if (!s || !r) {
         //console.log('extend failed, verify dependencies');
     }
@@ -45,40 +45,40 @@ Y.extend = function(r, s, px, sx) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
-Mixes _supplier_'s properties into _receiver_.
+ Mixes _supplier_'s properties into _receiver_.
 
-Properties on _receiver_ or _receiver_'s prototype will not be overwritten or
-shadowed unless the _overwrite_ parameter is `true`, and will not be merged
-unless the _merge_ parameter is `true`.
+ Properties on _receiver_ or _receiver_'s prototype will not be overwritten or
+ shadowed unless the _overwrite_ parameter is `true`, and will not be merged
+ unless the _merge_ parameter is `true`.
 
-In the default mode (0), only properties the supplier owns are copied (prototype
-properties are not copied). The following copying modes are available:
+ In the default mode (0), only properties the supplier owns are copied (prototype
+ properties are not copied). The following copying modes are available:
 
-  * `0`: _Default_. Object to object.
-  * `1`: Prototype to prototype.
-  * `2`: Prototype to prototype and object to object.
-  * `3`: Prototype to object.
-  * `4`: Object to prototype.
+ * `0`: _Default_. Object to object.
+ * `1`: Prototype to prototype.
+ * `2`: Prototype to prototype and object to object.
+ * `3`: Prototype to object.
+ * `4`: Object to prototype.
 
-@method mix
-@param {Function|Object} receiver The object or function to receive the mixed
-  properties.
-@param {Function|Object} supplier The object or function supplying the
-  properties to be mixed.
-@param {Boolean} [overwrite=false] If `true`, properties that already exist
-  on the receiver will be overwritten with properties from the supplier.
-@param {String[]} [whitelist] An array of property names to copy. If
-  specified, only the whitelisted properties will be copied, and all others
-  will be ignored.
-@param {Number} [mode=0] Mix mode to use. See above for available modes.
-@param {Boolean} [merge=false] If `true`, objects and arrays that already
-  exist on the receiver will have the corresponding object/array from the
-  supplier merged into them, rather than being skipped or overwritten. When
-  both _overwrite_ and _merge_ are `true`, _merge_ takes precedence.
-@return {Function|Object|YUI} The receiver, or the YUI instance if the
-  specified receiver is falsy.
-**/
-Y.mix = function(receiver, supplier, overwrite, whitelist, mode, merge) {
+ @method mix
+ @param {Function|Object} receiver The object or function to receive the mixed
+ properties.
+ @param {Function|Object} supplier The object or function supplying the
+ properties to be mixed.
+ @param {Boolean} [overwrite=false] If `true`, properties that already exist
+ on the receiver will be overwritten with properties from the supplier.
+ @param {String[]} [whitelist] An array of property names to copy. If
+ specified, only the whitelisted properties will be copied, and all others
+ will be ignored.
+ @param {Number} [mode=0] Mix mode to use. See above for available modes.
+ @param {Boolean} [merge=false] If `true`, objects and arrays that already
+ exist on the receiver will have the corresponding object/array from the
+ supplier merged into them, rather than being skipped or overwritten. When
+ both _overwrite_ and _merge_ are `true`, _merge_ takes precedence.
+ @return {Function|Object|YUI} The receiver, or the YUI instance if the
+ specified receiver is falsy.
+ **/
+Y.mix = function (receiver, supplier, overwrite, whitelist, mode, merge) {
     var alwaysOverwrite, exists, from, i, key, len, to;
 
     // If no supplier is given, we return the receiver. If no receiver is given,
@@ -94,13 +94,13 @@ Y.mix = function(receiver, supplier, overwrite, whitelist, mode, merge) {
         // handled later on.
         if (mode === 2) {
             Y.mix(receiver.prototype, supplier.prototype, overwrite,
-                    whitelist, 0, merge);
+                whitelist, 0, merge);
         }
 
         // Depending on which mode is specified, we may be copying from or to
         // the prototypes of the supplier and receiver.
         from = mode === 1 || mode === 3 ? supplier.prototype : supplier;
-        to   = mode === 1 || mode === 4 ? receiver.prototype : receiver;
+        to = mode === 1 || mode === 4 ? receiver.prototype : receiver;
 
         // If either the supplier or receiver doesn't actually have a
         // prototype property, then we could end up with an undefined `from`
@@ -110,7 +110,7 @@ Y.mix = function(receiver, supplier, overwrite, whitelist, mode, merge) {
         }
     } else {
         from = supplier;
-        to   = receiver;
+        to = receiver;
     }
 
     // If `overwrite` is truthy and `merge` is falsy, then we can skip a
@@ -189,7 +189,7 @@ Y.mix = function(receiver, supplier, overwrite, whitelist, mode, merge) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-Y.Array.find = function(a, f, o) {
+Y.Array.find = function (a, f, o) {
     for (var i = 0, l = a.length; i < l; i++) {
         if (i in a && f.call(o, a[i], i, a)) {
             return a[i];
@@ -202,21 +202,21 @@ Y.Array.find = function(a, f, o) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-  Y.Array.dedupe = function (array) {
-      var hash    = Object.create(null),
-          results = [],
-          i, item, len;
-  
-      for (i = 0, len = array.length; i < len; ++i) {
-          item = array[i];
-  
-          if (!hash[item]) {
-              hash[item] = 1;
-              results.push(item);
-          }
-      }
-      return results;
-  };
+Y.Array.dedupe = function (array) {
+    var hash = Object.create(null),
+        results = [],
+        i, item, len;
+
+    for (i = 0, len = array.length; i < len; ++i) {
+        item = array[i];
+
+        if (!hash[item]) {
+            hash[item] = 1;
+            results.push(item);
+        }
+    }
+    return results;
+};
 
 
 
