@@ -270,7 +270,7 @@ if (window.FaustTranscript === undefined) {
 
     FaustTranscript.CoveringImage.prototype.createView = function () {
         this.spanningImage = this.svgDocument().createElementNS(SVG_NS, 'use');
-        this.spanningImage.setAttributeNS('http://www.w3.org/1999/xlink', 'href', this.imageUrl);
+        this.spanningImage.setAttribute('href', this.imageUrl);
         this.spanningImage.setAttribute('class', this.type);
         this.spanningImage.setAttribute('x', 0);
         this.spanningImage.setAttribute('y', 0);
@@ -321,7 +321,7 @@ if (window.FaustTranscript === undefined) {
 
     FaustTranscript.SpanningVC.prototype.createView = function () {
         this.spanningRect = this.svgDocument().createElementNS(SVG_NS, 'use');
-        this.spanningRect.setAttributeNS('http://www.w3.org/1999/xlink', 'href', this.imageUrl);
+        this.spanningRect.setAttribute('href', this.imageUrl);
         this.spanningRect.setAttribute('class', this.type);
         this.spanningRect.setAttribute('x', 0);
         this.spanningRect.setAttribute('y', 0);
@@ -399,7 +399,7 @@ if (window.FaustTranscript === undefined) {
         g.setAttribute('class', this.type);
         this.graphic.setAttribute('width', this.imageWidth);
         this.graphic.setAttribute('height', this.imageHeight);
-        this.graphic.setAttributeNS('http://www.w3.org/1999/xlink', 'href', this.imageUrl);
+        this.graphic.setAttribute('href', this.imageUrl);
         g.setAttribute('vector-effect', 'non-scaling-stroke');
         var transform = "scale(" + this.displayWidth / this.imageWidth + "," + this.displayHeight / this.imageHeight + ")";
         this.graphic.setAttribute('transform', transform);
