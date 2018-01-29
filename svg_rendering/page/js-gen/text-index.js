@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Standoff annotation index for fast lookup
+ */
+
 if (window.Faust === undefined) {
     window.Faust = {};
 }

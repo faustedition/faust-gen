@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Initialize layout objects from document tree
+ */
+
 if (window.FaustTranscript === undefined) {
     window.FaustTranscript = {};
 }
@@ -27,8 +31,10 @@ if (window.Faust === undefined) {
 (function (Faust) {
 
     var TranscriptLayout = {
-        // Text factory; the current model only delivers text nodes, some additional elements (gaps, insertion marks) need
-        // to be delivered to know their tree context (hands...) for visualisation
+        /**
+         * Text factory; the current model only delivers text nodes, some additional elements (gaps, insertion marks)
+         * need to be delivered to know their tree context (hands...) for visualisation
+         */
         createText: function (content, start, end, text, layoutState) {
             if (content.length < 1) {
                 throw "Cannot create empty text!";
@@ -63,11 +69,13 @@ if (window.Faust === undefined) {
 })(Faust);
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 (function (FaustTranscript) {
 
+    /**
+     * Initialize a ViewComponent tree from an AdhocTree
+     * @constructor
+     */
     var TranscriptAdhocTree = function () {
         this.mainZone = null;
         this.idMap = {};
@@ -76,6 +84,14 @@ if (window.Faust === undefined) {
 
     Y.extend(TranscriptAdhocTree, Object, {
 
+        /**
+         * Walk an AdhocTree and construct a tree of ViewComponents
+         * @param {ViewComponent} parent
+         * @param {AnnotationNode} node
+         * @param {Text} text The standoff-annotated text
+         * @param layoutState An object that stores variables global w.r.t. one layout process
+         * @returns {*}
+         */
         buildVC: function (parent, node, text, layoutState) {
 
             if (node == null) {

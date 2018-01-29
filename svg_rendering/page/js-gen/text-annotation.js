@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Parse standoff markup. See Text.create() documentation for a description of the markup format.
+ */
+
 if (window.Faust === undefined) {
     window.Faust = {};
 }
@@ -27,10 +31,12 @@ if (window.Faust === undefined) {
         this.start = start;
         this.end = end;
     };
+
     var Name = function (namespace, localName) {
         this.namespace = namespace;
         this.localName = localName;
     };
+
     var Text = function (id, type, contentLength, range, content) {
         this.id = id;
         this.type = type;
@@ -190,6 +196,53 @@ if (window.Faust === undefined) {
             }
         }
     }, {
+        /**
+         * Constructs a queryable object of standoff-annotated text.
+         * @param data Text content and annotations. See provided example for details on the format.
+         * @returns The queryable annotated Text object
+         * @example <caption>An example for the JSON format of the data parameter. "textContent" contains the plain text.
+         *   "names" is a map of shorthands for namespace-qualified names, to be referenced from the annotation's "n"
+         *   field. An annotation further contains a "t" field (for "target") which has the format
+         *   [startChar, endChar, textId]. An annotation further has a unique "id" and a field "d" ("data") for arbitrary
+         *   key-value pairs. The top level "text" field has the same content model as an "annotation", but for this use
+         *   case its only relevant field is "id", which is referenced in all the annotations (as the text is the
+         *   annotations target).</caption>
+         *   <pre><code>
+         *   {
+         *     "text":{
+         *       "n":100,
+         *       "t":[[0, 14, 200]],
+         *       "d":{},
+         *       "id":0
+         *     },
+         *     "textContent":"Roses are red.",
+         *     "names":{
+         *       "10":[
+         *         "http://www.examplenamespace.org/ns",
+         *         "word"
+         *       ],
+         *       "11":[
+         *         "http://www.examplenamespace.org/ns",
+         *         "punctuation"
+         *       ],
+         *     },
+         *     "annotations":[
+         *       {
+         *         "n":10,
+         *         "t":[[0, 5, 0]],
+         *         "d":{"key1": "value1", "key2": "value2"},
+         *         "id":1
+         *       },
+         *       {
+         *         "n":11,
+         *         "t":[[13, 14, 0]],
+         *         "d":{},
+         *         "id":2
+         *       },
+         *     ]
+         *   }
+         *   </code></pre>
+         */
         create: function (data) {
             var text = new Text(data.text.id, data.text.t, data.text.l, data.textRange, data.textContent), names = {};
             Object.keys(data.names).forEach(function (name) {

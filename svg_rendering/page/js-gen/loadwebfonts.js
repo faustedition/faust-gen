@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Wrap the Google web font loader
+ */
+
 if (window.Faust === undefined) {
     window.Faust = {};
 }

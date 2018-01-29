@@ -17,6 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Abstract transcript layout classes. These classes need to be augmented by methods that do the graphical output.
+ * See transcript-svg.js for an SVG implementation.
+ */
+
 if (window.FaustTranscript === undefined) {
     window.FaustTranscript = {};
 }
@@ -25,6 +30,10 @@ if (window.FaustTranscript === undefined) {
 
     FaustTranscript.ENCODING_EXCEPTION_PREFIX = "ENCODING ERROR: ";
 
+    /**
+     * Base class for all displayed graphical elements (including text, lines, etc.)
+     * @constructor
+     */
     FaustTranscript.ViewComponent = function () {
         this.classes = [];
         this.initViewComponent();
@@ -32,6 +41,10 @@ if (window.FaustTranscript === undefined) {
     FaustTranscript.ViewComponent.prototype = {
         rotation: 0,
         elementName: '',
+        /**
+         *
+         * @returns {number} the global rotation of the element
+         */
         globalRotation: function () {
             var e = this;
             var result = 0;
@@ -54,6 +67,11 @@ if (window.FaustTranscript === undefined) {
             //this.hAlign = null;
             //this.vAlign = null;
         },
+        /**
+         * Add a child ViewComponent
+         * @param {ViewComponent} vc The child to add
+         * @returns {ViewComponent} The added child
+         */
         add: function (vc) {
             vc.parent = this;
             vc.pos = this.children.length;
@@ -61,17 +79,29 @@ if (window.FaustTranscript === undefined) {
             vc.defaultAligns();
             return vc;
         },
+        /**
+         * @returns {ViewComponent} The previous sibling ViewComponent, or null if there is none
+         */
         previous: function () {
             return (this.parent == null || this.pos <= 0) ? null : this.parent.children[this.pos - 1];
         },
+        /**
+         * @returns {ViewComponent} The next sibling ViewComponent, or null if there is none
+         */
         next: function () {
             return (this.parent == null || (this.pos + 1) >= this.parent.children.length) ? null : this.parent.children[this.pos + 1];
         },
+
+        /**
+         * Layout the ViewComponent by recursively laying out all children and its own graphical elements
+         * @returns {FaustTranscript.Dimensions}
+         */
         layout: function () {
             this.computeDimension();
             this.computePosition();
             var dimensions = new FaustTranscript.Dimensions();
             if (this.children.length <= 0) {
+                // TODO: is this still working as intended?
                 dimensions.update(this.x, this.y, this.x + this.width, this.y + this.height);
             } else {
 
@@ -87,18 +117,34 @@ if (window.FaustTranscript === undefined) {
 
             return dimensions;
         },
+        /**
+         * Check if the layout has changed significantly from last iteration, and if not, set a layoutSatisfied flag for
+         * the ViewComponent. The idea is that the layout has converged if the change is smaller than a constant
+         * epsilon. When setting the layoutSatisfied flag, a logical AND is applied to its previous state, so that
+         * multiple calls to checkLayoutDiff must all succeed for layoutSatisfied to be true.
+         * @param {number} old Old value for a dimension or position.
+         * @param {number} nu  New value for the dimension or position.
+         */
         checkLayoutDiff: function (old, nu) {
             var epsilon = 0.01;
             this.layoutSatisfied = this.layoutSatisfied && abs(old - nu) < epsilon;
         },
+        /**
+         * Compute the dimensions of the ViewComponent and check if layout is finished.
+         */
         computeDimension: function () {
             var oldWidth = this.width;
             var oldHeight = this.height;
             //Y.each(this.children, function(c) { c.computeDimension(); });
             this.dimension();
+            // Multiple calls to checkLayoutDiff are ANDed
             this.checkLayoutDiff(oldWidth, this.width);
             this.checkLayoutDiff(oldHeight, this.height);
         },
+
+        /**
+         * Compute the dimensions of the ViewComponent.
+         */
         dimension: function () {
             this.width = 0;
             this.height = 0;
@@ -110,6 +156,9 @@ if (window.FaustTranscript === undefined) {
 
             }, this);
         },
+        /**
+         * Compute the position of the ViewComponent and check if layout is finished.
+         */
         computePosition: function () {
             var oldX = this.x;
             var oldY = this.y;
@@ -122,16 +171,32 @@ if (window.FaustTranscript === undefined) {
             this.hAlign.align();
             this.vAlign.align();
         },
+        /**
+         * Compute the dimensions of the ViewComponent.
+         */
         computeClasses: function () {
             return (this.elementName ? ['element-' + this.elementName] : []).concat(this.classes);
         },
+        /**
+         * @returns {number} The rotation of the local X axis of the ViewComponent's local coordinate system relative
+         * to the global coordinate system's X axis
+         */
         rotX: function () {
             return 0 + this.globalRotation();
         },
+        /**
+         * @returns {number} The rotation of the local Y axis of the ViewComponent's local coordinate system relative
+         * to the global coordinate system's X axis
+         */
         rotY: function () {
             return 90 + this.globalRotation();
         },
 
+        /**
+         * Initialize the Aligns that control how the ViewComponent will be aligned to its siblings or parent. For the
+         * base class, this is the "block element" align. Child classes can override this
+         * method to achieve different alignment (e.g. "inline element" alignment).
+         */
         defaultAligns: function () {
 
             this.setAlign("vAlign", new FaustTranscript.Align(this, this.parent, this.rotY(), 0, 0, FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER));
@@ -143,6 +208,12 @@ if (window.FaustTranscript === undefined) {
             }
 
         },
+        /**
+         * Add an Align for the ViewComponent. Note that multiple Aligns can be added, so maybe it would have been
+         * more aptly named "addAlign"
+         * @param name If multiple aligns with the same name exist, only the one with the highest priority is applied
+         * @param align An Align instance.
+         */
         setAlign: function (name, align) {
             if (this[name]) {
 
@@ -160,6 +231,10 @@ if (window.FaustTranscript === undefined) {
         }
     };
 
+    /**
+     * Base class for block elements, i.e. elements that go below their preceding sibling and align left with their
+     * parent.
+     */
     FaustTranscript.BlockViewComponent = function () {
         FaustTranscript.BlockViewComponent.superclass.constructor.call(this);
     };
@@ -176,6 +251,9 @@ if (window.FaustTranscript === undefined) {
             this.setAlign("vAlign", new FaustTranscript.Align(this, this.parent, this.rotY(), 0, 0, FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER));
         }
     };
+    /**
+     * Base class for inline elements, i.e. elements that go to the right of their preceding sibling.
+     */
 
     FaustTranscript.InlineViewComponent = function () {
         FaustTranscript.InlineViewComponent.superclass.constructor.call(this);
@@ -194,6 +272,10 @@ if (window.FaustTranscript === undefined) {
         }
     };
 
+    /**
+     * A vertical free space (i.e. space between block elements).
+     * @param height The height of the VSpace
+     */
     FaustTranscript.VSpace = function (height) {
         FaustTranscript.VSpace.superclass.constructor.call(this);
         this.vSpaceHeight = height;
@@ -202,6 +284,9 @@ if (window.FaustTranscript === undefined) {
     Y.extend(FaustTranscript.VSpace, FaustTranscript.BlockViewComponent);
 
 
+    /**
+     * A patch glued to the writing surface
+     */
     FaustTranscript.Patch = function () {
         FaustTranscript.Patch.superclass.constructor.call(this);
     };
@@ -209,6 +294,9 @@ if (window.FaustTranscript === undefined) {
     Y.extend(FaustTranscript.Patch, FaustTranscript.BlockViewComponent);
 
 
+    /**
+     * A horizontal space (inline)
+     */
     FaustTranscript.HSpace = function (width) {
         FaustTranscript.HSpace.superclass.constructor.call(this);
         this.hSpaceWidth = width;
@@ -216,6 +304,10 @@ if (window.FaustTranscript === undefined) {
 
     Y.extend(FaustTranscript.HSpace, FaustTranscript.InlineViewComponent);
 
+    /**
+     * A writing surface. This will usually be the root of the tree of ViewComponent instances and will in most cases
+     * represents a page.
+     */
     FaustTranscript.Surface = function () {
         FaustTranscript.Surface.superclass.constructor.call(this);
     };
@@ -228,7 +320,9 @@ if (window.FaustTranscript === undefined) {
         // TODO: surface-specific layout
     };
 
-
+    /**
+     * Represents a topographical zone in the transcript
+     */
     FaustTranscript.Zone = function () {
         FaustTranscript.Zone.superclass.constructor.call(this);
         this.floats = [];
@@ -251,6 +345,10 @@ if (window.FaustTranscript === undefined) {
         });
     };
 
+    /**
+     * A line of written text
+     * @param lineAttrs Line attributes
+     */
     FaustTranscript.Line = function (lineAttrs) {
         FaustTranscript.Line.superclass.constructor.call(this);
         this.lineAttrs = lineAttrs;
@@ -270,8 +368,7 @@ if (window.FaustTranscript === undefined) {
         else
             return 0;
     };
-
-
+    
     FaustTranscript.Line.prototype.previousNonIntermediateLine = function () {
         if (this.pos == 1)
             return this.parent.children[0];
@@ -285,6 +382,9 @@ if (window.FaustTranscript === undefined) {
             return pre;
     };
 
+    /**
+     * Initiates alignment of the line, depending on line attriutes such as "interline", "centered" etc.
+     */
     FaustTranscript.Line.prototype.defaultAligns = function () {
 
         if ("indent" in this.lineAttrs) {
@@ -316,6 +416,10 @@ if (window.FaustTranscript === undefined) {
         }
     };
 
+    /**
+     * An atomic piece of text that can be aligned, styled, decorated etc.
+     * @param {string} text The text to be displayed
+     */
     FaustTranscript.Text = function (text) {
         FaustTranscript.Text.superclass.constructor.call(this);
         this.decorations = [];
@@ -331,6 +435,11 @@ if (window.FaustTranscript === undefined) {
         this.height = measured.height;
     };
 
+    /**
+     * A free floating ViewComponent that will be taken out of the normal alignment flow.
+     * @param classes
+     * @param floatParent
+     */
     FaustTranscript.FloatVC = function (classes, floatParent) {
         FaustTranscript.FloatVC.superclass.constructor.call(this);
         this.classes = this.classes.concat(classes);
@@ -344,6 +453,16 @@ if (window.FaustTranscript === undefined) {
         return this.rotation;
     };
 
+    /**
+     * A floating image
+     * @param type
+     * @param classes
+     * @param imageUrl
+     * @param fixedWidth
+     * @param fixedHeight
+     * @param floatParent
+     * @constructor
+     */
     FaustTranscript.CoveringImage = function (type, classes, imageUrl, fixedWidth, fixedHeight, floatParent) {
         FaustTranscript.CoveringImage.superclass.constructor.call(this, classes, floatParent);
         this.type = type;
@@ -382,6 +501,12 @@ if (window.FaustTranscript === undefined) {
 
     Y.extend(FaustTranscript.SpanningVC, FaustTranscript.ViewComponent);
 
+    /**
+     * Base class for inline decorations such as circles or rectangles around text
+     * @param classes
+     * @constructor
+     */
+
     FaustTranscript.InlineDecoration = function (classes) {
         FaustTranscript.InlineDecoration.superclass.constructor.call(this);
         this.classes = this.classes.concat(classes);
@@ -390,6 +515,11 @@ if (window.FaustTranscript === undefined) {
 
     Y.extend(FaustTranscript.InlineDecoration, FaustTranscript.InlineViewComponent);
 
+    /**
+     * An inline rectangle decoration around text
+     * @param classes
+     * @constructor
+     */
     FaustTranscript.RectInlineDecoration = function (classes) {
         FaustTranscript.RectInlineDecoration.superclass.constructor.call(this);
         this.classes.push('inline-decoration-type-rect');
@@ -397,6 +527,11 @@ if (window.FaustTranscript === undefined) {
 
     Y.extend(FaustTranscript.RectInlineDecoration, FaustTranscript.InlineDecoration);
 
+    /**
+     * An inline circle decoration around text
+     * @param classes
+     * @constructor
+     */
     FaustTranscript.CircleInlineDecoration = function (classes) {
         FaustTranscript.CircleInlineDecoration.superclass.constructor.call(this);
         this.classes.push('inline-decoration-type-circle');
@@ -404,7 +539,16 @@ if (window.FaustTranscript === undefined) {
 
     Y.extend(FaustTranscript.CircleInlineDecoration, FaustTranscript.InlineDecoration);
 
-
+    /**
+     * An inline graphic or image
+     * @param type
+     * @param imageUrl
+     * @param imageWidth
+     * @param imageHeight
+     * @param displayWidth
+     * @param displayHeight
+     * @constructor
+     */
     FaustTranscript.InlineGraphic = function (type, imageUrl, imageWidth, imageHeight, displayWidth, displayHeight) {
         FaustTranscript.InlineGraphic.superclass.constructor.call(this);
         this.type = type;
@@ -418,6 +562,10 @@ if (window.FaustTranscript === undefined) {
 
     Y.extend(FaustTranscript.InlineGraphic, FaustTranscript.InlineViewComponent);
 
+    /**
+     * A graphical line such as squiggles
+     * @constructor
+     */
     FaustTranscript.GLine = function () {
         FaustTranscript.GLine.superclass.constructor.call(this);
     };
@@ -429,7 +577,10 @@ if (window.FaustTranscript === undefined) {
         this.height = 20;
     };
 
-
+    /**
+     * A graphical brace spanning a bigger part of the surface
+     * @constructor
+     */
     FaustTranscript.GBrace = function () {
         FaustTranscript.GBrace.superclass.constructor.call(this);
     };
@@ -441,6 +592,12 @@ if (window.FaustTranscript === undefined) {
         this.height = 20;
     };
 
+    /**
+     * Base class for text decoration
+     * @param {Text} text The text to be decorated
+     * @param classes
+     * @constructor
+     */
     FaustTranscript.TextDecoration = function (text, classes) {
         this.text = text;
         this.classes = classes;
@@ -455,12 +612,29 @@ if (window.FaustTranscript === undefined) {
     };
     Y.extend(FaustTranscript.NullDecoration, FaustTranscript.TextDecoration);
 
+    /**
+     * A line decorating text
+     * @param text The text to be decorated
+     * @param classes
+     * @param name
+     * @param yOffset How high the line should be set, to enable underline, strike-through, overline etc.
+     * @constructor
+     */
     FaustTranscript.LineDecoration = function (text, classes, name, yOffset) {
         FaustTranscript.LineDecoration.superclass.constructor.call(this, text, classes.concat(['text-decoration-type-' + name]));
         this.yOffset = yOffset;
     };
     Y.extend(FaustTranscript.LineDecoration, FaustTranscript.TextDecoration);
 
+    /**
+     * A decoration that duplicates text, to be used for doubly-written ("overwritten") text
+     * @param text The text to be decorated
+     * @param classes
+     * @param name
+     * @param xOffset
+     * @param yOffset
+     * @constructor
+     */
     FaustTranscript.CloneDecoration = function (text, classes, name, xOffset, yOffset) {
         FaustTranscript.CloneDecoration.superclass.constructor.call(this, text, classes.concat(['text-decoration-type-' + name]));
         this.xOffset = xOffset;
@@ -468,6 +642,21 @@ if (window.FaustTranscript === undefined) {
     };
     Y.extend(FaustTranscript.CloneDecoration, FaustTranscript.TextDecoration);
 
+    /**
+     * An Align controls the positioning of a ViewComponent along one axis w.r.t. to another ViewComponent, usually its
+     * parent or sibling. Multiple Aligns can be applied to a single ViewComponent (e.g. for x- and y-positioning)
+     * @param {ViewComponent} me The ViewComponent to be positioned
+     * @param {ViewComponent} you The ViewComponent to be aligned against
+     * @param {number} coordRotation The axis along which to align (TODO in which coordinate system?)
+     * @param {number} myJoint A number that determines at which point on the axis the "me"
+     * ViewComponent will be aligned with "yourJoint" of the "you" ViewComponent. For example, if "coordRotation"
+     * specifies the y-axis, then 0 means the top of the "me" ViewComponent and 1 means the bottom, 0.5 means the middle,
+     * 2 means one height below the bottom of ViewComponent etc. The bounding box in local coordinate system is used.
+     * @param {number} yourJoint See "myJoint"
+     * @param {number} priority In the case of two or more conflicting Aligns, only the one with the highest priority
+     * should be applied (by code using Aligns)
+     * @constructor
+     */
     FaustTranscript.Align = function (me, you, coordRotation, myJoint, yourJoint, priority) {
         this.me = me;
         this.you = you;
@@ -477,6 +666,7 @@ if (window.FaustTranscript === undefined) {
         this.priority = priority;
     };
 
+    // Constants for priority
     FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER = 0;
     FaustTranscript.Align['0'] = 'IMPLICIT_BY_DOC_ORDER';
     FaustTranscript.Align.REND_ATTR = 5;
@@ -498,6 +688,14 @@ if (window.FaustTranscript === undefined) {
         this.me.setCoord(value, this.coordRotation);
     };
 
+    /**
+     * An align that sets absolute coordinates
+     * @param me
+     * @param coordRotation
+     * @param coordinate
+     * @param priority
+     * @constructor
+     */
     FaustTranscript.AbsoluteAlign = function (me, coordRotation, coordinate, priority) {
         this.me = me;
         this.coordRotation = coordRotation;
@@ -516,6 +714,10 @@ if (window.FaustTranscript === undefined) {
     FaustTranscript.NullAlign.prototype.align = function () {
     };
 
+    /**
+     * Represents the dimensions of a ViewComponent
+     * @constructor
+     */
     FaustTranscript.Dimensions = function () {
     };
 

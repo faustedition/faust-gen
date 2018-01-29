@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Build a tree from the standoff annotations from `text-annotaion.js`
+ */
+
 if (window.Faust === undefined) {
     window.Faust = {};
 }

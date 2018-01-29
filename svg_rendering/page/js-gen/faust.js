@@ -17,10 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file General utility functions. 
+ */
+
 if (window.Faust === undefined) {
     window.Faust = {};
 }
 (function (Faust) {
+
+    /**
+     * Encode UTF-8 characters in a URI
+     * @param {string} path
+     * @returns {string}
+     */
     Faust.encodePath = function (path) {
         var encoded = "";
         var pathComponents = path.split("/");
@@ -28,6 +38,12 @@ if (window.Faust === undefined) {
             encoded += (encoded.length == 0 ? "" : "/") + encodeURI(pathComponents[pc]);
         return encoded;
     };
+
+    /**
+     * Represents a Faust URI with the scheme "faust://"
+     * @param uri
+     * @constructor
+     */
 
     Faust.URI = function (uri) {
         this.components = uri.match(/^faust:\/\/([^\/]+)\/(.*)/);
@@ -38,12 +54,6 @@ if (window.Faust === undefined) {
             return Faust.encodePath(this.components[2]);
         }
     };
-
-    /* REMOVE
-     Faust.YUI = function() {
-     return YUI();
-     };
-     */
 
     Faust.io = function (uri, callback, reviver) {
         var xhr = new XMLHttpRequest();
@@ -71,38 +81,4 @@ if (window.Faust === undefined) {
         }
         xhr.send(null);
     };
-    /* REMOVE
-     Faust.io = function(uri, callback, reviver) {
-     Faust.YUI().use("io", "json", function(Y) {
-     Y.io(Faust.contextPath + "/" + uri, {
-     method: "GET",
-     xdr: { responseXML: false },
-     headers: { "Accept": "application/json" },
-     on: {
-     success: function(id, o, a) {
-     callback(Y.JSON.parse(o.responseText, reviver));
-     },
-     failure: function(id, o, a) {
-     Y.log("ERROR " + id + " " + a, "info", "Faust") }
-     }
-     });
-     });
-     };
-     */
-    /* REMOVE
-     Faust.xml = function(uri, callback) {
-     Faust.YUI().use("io", function(Y) {
-     Y.io(Faust.contextPath + "/" + uri, {
-     method: "GET",
-     on: {
-     success: function(id, o, a) {
-     callback(o.responseXML);
-     },
-     failure: function(id, o, a) {
-     Y.log("ERROR " + id + " " + a, "info", "Faust") }
-     }
-     });
-     });
-     };
-     */
 })(Faust);

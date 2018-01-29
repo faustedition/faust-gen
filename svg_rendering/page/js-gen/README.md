@@ -34,11 +34,6 @@ The rendering library relies on a proprietary text markup format. This can be ge
 
 `svg-utils.js` SVG utility functions
 
-### Legacy wrappers
-
-
-`materialunit.js` Handle archival objects (TODO: check if used and remove)
-
 
 ### Standoff annotation handling 
 
@@ -55,9 +50,9 @@ The rendering library relies on a proprietary text markup format. This can be ge
 
 `transcript-adhoc-tree.js` Initialize layout objects from document tree
 
-`transcript-configuration-faust.js` Parameters for transcript layout
+`transcript-configuration-faust.js` Configure parameters for transcript layout
 
 `transcript-generation.js` Entry point for transcript generation
 
-`transcript-svg.js` Augment the abstract classes in `transcript.js` to do the layout with an SVG terminal 
+`transcript-svg.js` Augment the abstract classes in `transcript.js` to do the layout with an SVG 'terminal' 
 

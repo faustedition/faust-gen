@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file SVG utility functions
+ */
+
 if (window.SvgUtils === undefined) {
     window.SvgUtils = {};
 }
@@ -26,6 +30,12 @@ if (window.SvgUtils === undefined) {
 
     var SVG_NS = "http://www.w3.org/2000/svg";
 
+    /**
+     * Decode arbitrary data coded in class values in the form of a class "keyvalue"
+     * @param classValue
+     * @param key The key, the be prefix of a class "keyvalue"
+     * @returns {string} the postfix following the key in a class "keyvalue"
+     */
     function decodeClassValue(classValue, key) {
         var start = classValue.indexOf(key);
         if (start < 0) {
@@ -43,6 +53,11 @@ if (window.SvgUtils === undefined) {
         };
     }
 
+    /**
+     * Create an SVG element
+     * @param name
+     * @returns {Element} A new SVG element
+     */
     function svgElement(name) {
         return document.createElementNS(SVG_NS, name);
     }
@@ -97,6 +112,9 @@ if (window.SvgUtils === undefined) {
 
     // An implementation of getScreenBBox, by Antoine Quint, modiefied by Moritz Wissenbach
     // http://the.fuchsia-design.com/2006/12/getting-svg-elementss-full-bounding-box.html
+    /**
+     * Return the bounding box in screen coordinates.
+     */
     function getScreenBBox(element, svgRoot) {
 
         // macro to create an SVGPoint object
@@ -168,7 +186,6 @@ if (window.SvgUtils === undefined) {
     /**
      * Safely get and return the bounding box of element as seen from its local coordinate system.
      */
-
     function localBoundingBox(element) {
 
         // Firefox will throw an exception when calling getBBox() on an element with display: none

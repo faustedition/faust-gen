@@ -17,6 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Augment the abstract classes in `transcript.js` to do the layout with an SVG 'terminal'. See 'transcript.js'
+ * for a description of the classes and functions that are overwritten here.
+ */
+
 if (window.FaustTranscript === undefined) {
     window.FaustTranscript = {};
 }
@@ -24,7 +29,7 @@ if (window.FaustTranscript === undefined) {
 (function (FaustTranscript) {
 
     var SVG_NS = "http://www.w3.org/2000/svg";
-//  var DRAG_NS = "http://www.codedread.com/dragsvg";
+    //  var DRAG_NS = "http://www.codedread.com/dragsvg";
 
     // Implementation of View Components. Keep in sync with transcript.js.
     // These components are based on SVG. The model is only

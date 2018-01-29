@@ -17,6 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Configure parameters for transcript layout
+ */
 
 if (window.Faust === undefined) {
     window.Faust = {};
@@ -44,9 +47,10 @@ if (window.Faust === undefined) {
         return classes;
     }
 
-    // A configuration defines how markup is rendered by providing handler
-    // functions in Y.Faust.TranscriptConfiguration.
-
+    /**
+     * A configuration defines how markup is rendered by providing handler
+     * functions in Y.Faust.TranscriptConfiguration.
+     */
     Faust.TranscriptConfiguration = {
         // should overlapping stuff be rendered on top of each other?
         // overlay : "overlay",

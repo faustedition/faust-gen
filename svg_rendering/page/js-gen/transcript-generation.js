@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file Entry point for transcript generation
+ */
+
 var transcriptGeneration = (function () {
     "use strict";
 
