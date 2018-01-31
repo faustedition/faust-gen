@@ -78,7 +78,6 @@ if (window.Faust === undefined) {
      */
     var TranscriptAdhocTree = function () {
         this.mainZone = null;
-        this.idMap = {};
         this.postBuildDeferred = [];
     };
 
@@ -179,7 +178,7 @@ if (window.Faust === undefined) {
 
                         that.postBuildDeferred.push(
                             function () {
-                                var anchor = that.idMap[anchorId];
+                                var anchor = layoutState.idMap[anchorId];
                                 if (!anchor)
                                     throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "Reference to #" + anchorId + " cannot be resolved!");
                                 var globalCoordRot = coordRot + anchor.globalRotation();
@@ -218,7 +217,7 @@ if (window.Faust === undefined) {
             if (node instanceof Faust.AnnotationNode) {
                 var xmlId = node.data()["xml:id"];
                 if (xmlId) {
-                    this.idMap[xmlId] = vc;
+                    layoutState.idMap[xmlId] = vc;
                     vc.xmlId = xmlId;
                 }
 
