@@ -85,7 +85,24 @@ if (window.Faust === undefined) {
     Y.extend(TranscriptAdhocTree, Object, {
 
         /**
-         * Walk an AdhocTree and construct a tree of ViewComponents
+         * Walk an AdhocTree and construct a tree of ViewComponents. The global object
+         * Faust.TranscriptConfiguration.names can be set up to provide callback functions that will be called when
+         * a certain annotation node is encountered. The keys in Faust.TranscriptConfiguration.names correspond to the
+         * local annotation name. Behind the key can be an object with the following callback functions:
+         *
+         * vc (node, text, layoutState) will construct and return the ViewComponent object
+         *
+         * start (vc, node, text, layoutState) will be called after the ViewComponent has been added to the layout tree
+         *                                     but before any children have been added. This is the place where elements
+         *                                     can be added that go to the beginning of the ViewComponent
+         *
+         * end (vc, node, text, layoutState)   will be called after the ViewComponent has been added to the layout tree
+         *                                     and after any children have been added. This is the place where elements
+         *                                     can be added that go to the end of the ViewComponent
+         *
+         * text (annotation, textVC) will be called when a text node is encountered and addedwhile traversing the tree.
+         *                           This can be used to modify the properties of the text according to the annotation.
+         *
          * @param {ViewComponent} parent
          * @param {AnnotationNode} node
          * @param {Text} text The standoff-annotated text
@@ -117,14 +134,7 @@ if (window.Faust === undefined) {
 
                 //ioc: configurable modules handle the construction of the view
 
-                // 'start' callback before the construction of any view components
-
-                if (node.name().localName in Faust.TranscriptConfiguration.names) {
-                    var nameHandler = Faust.TranscriptConfiguration.names[node.name().localName];
-                    if (nameHandler.start) {
-                        nameHandler.start.call(node, text, layoutState);
-                    }
-                }
+                // call 'vc' callback to construct the view component
 
                 if (node.name().localName in Faust.TranscriptConfiguration.names
                     && 'vc' in Faust.TranscriptConfiguration.names[node.name().localName]) {
@@ -197,7 +207,8 @@ if (window.Faust === undefined) {
                 // annotate the vc with the original element name
                 vc.elementName = node.name ? node.name().localName : "";
 
-                if (parent != null) { // && parent !== this) {
+                // add view component to parent
+                if (parent != null) {
                     parent.add(vc);
                     vc.parent = parent;
                 }
@@ -210,10 +221,19 @@ if (window.Faust === undefined) {
                     this.idMap[xmlId] = vc;
                     vc.xmlId = xmlId;
                 }
+
+                // call 'start' callback before the construction of any view components
+
+                if (node.name().localName in Faust.TranscriptConfiguration.names) {
+                    var nameHandler = Faust.TranscriptConfiguration.names[node.name().localName];
+                    if (nameHandler.start) {
+                        nameHandler.start(vc, node, text, layoutState);
+                    }
+                }
             }
 
+            // construct children
             var that = this;
-
             node.children().forEach(function (c) {
                 that.buildVC(parent, c, text, layoutState);
             });
@@ -233,7 +253,7 @@ if (window.Faust === undefined) {
                 if (node.name().localName in Faust.TranscriptConfiguration.names) {
                     var nameHandler = Faust.TranscriptConfiguration.names[node.name().localName];
                     if (nameHandler.end) {
-                        nameHandler.end.call(vc, node, text, layoutState);
+                        nameHandler.end(vc, node, text, layoutState);
                     }
                 }
             }

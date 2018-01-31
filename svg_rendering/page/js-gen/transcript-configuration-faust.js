@@ -298,25 +298,26 @@ if (window.Faust === undefined) {
             },
 
             'ins': {
-                vc: function (node, text, layoutState) {
+                vc: function (node, text, layoutState) {return new FaustTranscript.InlineViewComponent();},
+                start: function (vc, node, text, layoutState) {
+
                     var annotationStart = node.annotation.target().range.start;
                     var annotationEnd = node.annotation.target().range.end;
-                    var vc = new FaustTranscript.InlineViewComponent();
-                    // insertion mark
+
                     if (node.data()["f:orient"] === "right") {
                         var insertionSign = node.data()['f:at'].substring(1) in layoutState.idMap ? "\u230a" : "\u2308";
                         vc.add(Faust.TranscriptLayout.createText(insertionSign, annotationStart, annotationEnd,
                             text, layoutState));
                     }
-                    return vc;
                 },
-                end: function (node, text, layoutState) {
+
+                end: function (vc, node, text, layoutState) {
                     if (node.data()["f:orient"] === "left") {
                         // insertion mark
                         var annotationStart = node.annotation.target().range.start;
                         var annotationEnd = node.annotation.target().range.end;
                         var insertionSign = node.data()['f:at'].substring(1) in layoutState.idMap ? "\u230b" : "\u2309";
-                        this.add(Faust.TranscriptLayout.createText(insertionSign, annotationStart, annotationEnd,
+                        vc.add(Faust.TranscriptLayout.createText(insertionSign, annotationStart, annotationEnd,
                             text, layoutState));
                     }
                 }
@@ -520,19 +521,18 @@ if (window.Faust === undefined) {
             },
 
             'supplied': {
-                vc: function (node, text, layoutState) {
-
+                vc: function (node, text, layoutState) {return new FaustTranscript.InlineViewComponent();},
+                start: function (vc, node, text, layoutState) {
                     var annotationStart = node.annotation.target().range.start;
                     var annotationEnd = node.annotation.target().range.end;
-                    var vc = new FaustTranscript.InlineViewComponent();
                     vc.add(Faust.TranscriptLayout.createText('[', annotationStart, annotationEnd, text,
                         layoutState));
-                    return vc;
                 },
-                end: function (node, text, layoutState) {
+
+                end: function (vc, node, text, layoutState) {
                     var annotationStart = node.annotation.target().range.start;
                     var annotationEnd = node.annotation.target().range.end;
-                    this.add(Faust.TranscriptLayout.createText(']', annotationStart, annotationEnd, text,
+                    vc.add(Faust.TranscriptLayout.createText(']', annotationStart, annotationEnd, text,
                         layoutState));
                 }
             },
@@ -551,23 +551,19 @@ if (window.Faust === undefined) {
 
 
             'unclear': {
-                vc: function (node, text, layoutState) {
-
+                vc: function (node, text, layoutState) {return new FaustTranscript.InlineViewComponent();},
+                start: function(vc, node, text, layoutState) {
                     var annotationStart = node.annotation.target().range.start;
                     var annotationEnd = node.annotation.target().range.end;
-                    var vc = new FaustTranscript.InlineViewComponent();
                     var startMarker = node.data()['cert'] == 'low' ? '{{' : '{';
-                    var certainty = node.data()['cert'] == 'low' ? 'low' : 'high';
-                    vc.classes.push('unclear-cert-' + certainty);
                     vc.add(Faust.TranscriptLayout.createText(startMarker, annotationStart, annotationEnd, text,
                         layoutState));
-                    return vc;
                 },
-                end: function (node, text, layoutState) {
+                end: function (vc, node, text, layoutState) {
                     var annotationStart = node.annotation.target().range.start;
                     var annotationEnd = node.annotation.target().range.end;
                     var endMarker = node.data()['cert'] == 'low' ? '}}' : '}';
-                    this.add(Faust.TranscriptLayout.createText(endMarker, annotationStart, annotationEnd, text,
+                    vc.add(Faust.TranscriptLayout.createText(endMarker, annotationStart, annotationEnd, text,
                         layoutState));
 
                     // hide the component if it is a less probable alternative of a choice
@@ -576,7 +572,7 @@ if (window.Faust === undefined) {
                             return annotation.data()['cert']
                         });
                         if (node.data()['cert'] == 'low' && sibling_cert_values.indexOf('high') >= 0) {
-                            this.computeClasses = function () {
+                            vc.computeClasses = function () {
                                 return ['invisible'];
                             };
                         }
