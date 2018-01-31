@@ -222,7 +222,7 @@ if (window.Faust === undefined) {
                     vc.xmlId = xmlId;
                 }
 
-                // call 'start' callback before the construction of any view components
+                // call 'start' callback before the addition of children, but after adding to the layout tree
 
                 if (node.name().localName in Faust.TranscriptConfiguration.names) {
                     var nameHandler = Faust.TranscriptConfiguration.names[node.name().localName];
