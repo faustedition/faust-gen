@@ -56,3 +56,12 @@ The rendering library relies on a proprietary text markup format. This can be ge
 
 `transcript-svg.js` Augment the abstract classes in `transcript.js` to do the layout with an SVG 'terminal' 
 
+## Overview of the layout process
+
+1. Annotated 'Text' object is initiated from an XML file
+2. 'AdhocTree' element is constructed from 'Text' object for easier traversal, and to provide a tree interface for the
+   older layout code that originally operated on a multi-tree model
+3. A tree of 'ViewComponent' objects is constructed from the 'AdhocTree' object. At the same time, the SVG frontend to
+   the 'ViewComponent' will construct an SVG that resembles (but not one-to-one) the 'ViewComponent' tree
+4. The layout process is run iteratively, walking the 'ViewComponent' tree and adjusting the position and size of the 
+   various ViewComponents (and their SVG representations) until the layout converges
