@@ -139,6 +139,8 @@ public class DiplomaticConversion {
 					resolvedSvgPath.toString());
 			if (debugPhantomJS)
 				arguments.add(1, "--debug=errors");
+			if (arguments.get(0).contains("slimerjs"))
+				arguments.add(1, "--headless");
 			
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {

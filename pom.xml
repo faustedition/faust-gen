@@ -271,13 +271,13 @@
 										<artifactItem>
 											<groupId>net.faustedition</groupId>
 											<artifactId>slimerjs</artifactId>
-											<version>0.10.1</version>
+											<version>1.0.0-beta.1</version>
 											<type>zip</type>
 										</artifactItem>
 										<artifactItem>
 											<groupId>org.mozilla</groupId>
 											<artifactId>firefox</artifactId>
-											<version>45.4.0esr</version>
+											<version>57.0.4</version>
 											<classifier>${os.detected.classifier}</classifier>
 											<type>tar.bz2</type>
 										</artifactItem>
@@ -320,7 +320,7 @@
 										<!-- For PhantomJS: -->										
 										<!-- <argument>-Dphantomjs.binary=${phantomjs.binary}</argument> -->
 										<!-- For SlimerJS instead: -->
-										<argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-0.10.1/slimerjs</argument>
+										<argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-1.0.0-beta.1/slimerjs</argument>
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
 										<argument>-Dfaust.diplo.port=${faust.diplo.port}</argument>
