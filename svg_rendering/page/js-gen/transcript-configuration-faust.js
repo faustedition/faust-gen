@@ -62,7 +62,7 @@ if (window.Faust === undefined) {
         initialize: function (layoutState) {
             layoutState.idMap = {};
         },
-        forceFontLoading: false,
+        forceFontLoading: true,
         names: {
             'anchor': {
                 vc: function (node, text, layoutState) {
