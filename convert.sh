@@ -1,17 +1,33 @@
 #!/bin/bash
 
+# Das Skript konvertiert die originalen TIFFs in die diversen JPEGs, die die
+# Faust-Webapp benötigt.  In den nächsten Zeilen konfigurieren und dann
+# ./convert.sh ausführen. Bereits konvertierte Dateien werden nicht neu
+# konvertiert.
+#
+# Das Skript benötigt neben dem üblichen Unix-Toolchain ImageMagick.
+
+### Konfiguration:
+
+# Eingabeverzeichnis. Hier liegen Unterverzeichnisse mit den Original-Digitalisaten drin
+input_dir="$PWD"/img/tif 
+#input_dir="/faust/img/tif"
+
+# Ausgabeverzeichnis. Darin entstehen Verzeichnise jpg, jpg_tiles und metadata 
+output_dir=$PWD/facsimile # 
+#output_dir=/faust/transcript/facsimile
+
+### Detailanpassung, hier idR nichts verändern:
 current_dir="$PWD"
-input_dir="/faust/img/tif"
-#output_jpg="/var/www/release/transcript/facsimile/jpg"
-#output_tiles="/var/www/release/transcript/facsimile/jpg_tiles"
-#output_metadata="/var/www/release/transcript/facsimile/metadata"
-output_jpg="/faust/transcript/facsimile/jpg"
-output_tiles="/faust/transcript/facsimile/jpg_tiles"
-output_metadata="/faust/transcript/facsimile/metadata"
+output_jpg="$output_dir/jpg"
+output_tiles="$output_dir/jpg_tiles"
+output_metadata="$output_dir/metadata"
 #zoom_levels must be larger than 0
 zoom_levels="8"
 tile_width="256"
 tile_height="256"
+
+################################################
 
 # go to input dir to explore files and folders
 cd "$input_dir"
@@ -44,6 +60,7 @@ do
   then
     continue
   fi
+  echo "Converting $file ..."
 
 
   #convert tga->jpg and create preview images with max size 240x360 (widthXheight)
@@ -87,8 +104,3 @@ do
 
 
 done
-
-# return to the folder that we started in
-cd "$current_dir"
-
-
