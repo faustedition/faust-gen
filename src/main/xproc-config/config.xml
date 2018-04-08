@@ -20,7 +20,7 @@
 	<c:param name="variants" value="${project.build.directory}/www/print/variants/"/>
 	
 	<!-- URL prefix to be used for links into the document viewer (transcripts etc.) -->
-	<c:param name="docbase" value="/documentViewer?faustUri=faust://xml"/>
+	<c:param name="docbase" value="/document?sigil="/>
 	
 	<!-- URL prefix to be used for links into the print and lesetext folder -->
 	<c:param name="printbase" value="/print/"/>

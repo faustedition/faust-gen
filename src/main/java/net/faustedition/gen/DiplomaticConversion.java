@@ -207,7 +207,7 @@ public class DiplomaticConversion {
 			try {
 				final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
 				sigil = doc.gotoTag("//idno[@type='faustedition']").getText();
-				basename = sigil.replaceAll("\\s+", "_"); // sigil.replace("α", "alpha").replaceAll("[^A-Za-z0-9.-]+", "_");
+				basename = sigil.replaceAll("α", "alpha").replaceAll("[^A-Za-z0-9.-]", "_");
 				base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
 				final Builder<TranscriptPage> builder = Stream.builder();
 				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), tag.rawXpathNumber("count(preceding::page)").intValue()+1)),
