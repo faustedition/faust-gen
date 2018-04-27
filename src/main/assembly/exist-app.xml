@@ -14,7 +14,8 @@
 				<include>*.xml</include>
 			</includes>		
 			<outputDirectory/>
-		</fileSet>	
+            <filtered>true</filtered>
+		</fileSet>
 		<fileSet>
 			<directory>${project.basedir}/src/main/xproc/xslt</directory>
 			<includes>
@@ -24,7 +25,7 @@
 			<outputDirectory>xslt</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>${project.build.directory}/search/textTranscript</directory>
+			<directory>${project.build.directory}/search</directory>
 			<includes><include>**/*</include></includes>
 			<outputDirectory>data</outputDirectory>
 		</fileSet>
