@@ -96,22 +96,27 @@ var transcriptGeneration = (function () {
 
             var computeLayout = function (currentIteration) {
                 visComponent.layout();
-                if (currentIteration < iterations) {
-                    // push next layout computation to end of event queue
-                    setTimeout(function () {
-                        computeLayout(currentIteration + 1);
-                    }, timeout);
-                } else {
+                // move content to upper left corner and set witdh and height of container
+                function containerAdjustDimensions() {
                     var rootBBox = innerContainer.getBBox();
                     innerContainer.setAttribute("transform", "translate(" + (-rootBBox.x) + "," + (-rootBBox.y) + ")");
                     svgRoot.setAttribute("width", rootBBox.width);
                     svgRoot.setAttribute("height", rootBBox.height);
-
-//          document.body.removeChild(renderContainer);
+                }
+                if (currentIteration < iterations) {
+                    // push next layout computation to end of event queue
+                    setTimeout(function () {
+                        // console.log('Layout iteration ' + currentIteration);
+                        computeLayout(currentIteration + 1);
+                        // adjust dimensions and positioning after each step for easier debugging (can be omitted
+                        // for production)
+                        containerAdjustDimensions();
+                    }, timeout);
+                } else {
+                    containerAdjustDimensions();
                     if (typeof callback !== 'undefined') {
                         callback(renderContainer.firstChild);
                     }
-
                 }
             };
 
