@@ -65,7 +65,7 @@ svg.diplomatic g.Zone:hover {
 
 /* Ubuntu Light */
 svg.diplomatic .text {
-    font-family: "Ubuntu";
+    font-family: "Ubuntu derivative Faust";
     font-size: 12pt;
     fill: black;
     stroke: none;
