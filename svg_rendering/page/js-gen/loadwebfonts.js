@@ -34,7 +34,7 @@ if (window.Faust === undefined) {
         var fontError = false;
         var webFontConfig = {
             custom: {
-                families: ['Ubuntu derivative Faust', 'Ubuntu Monospace', 'Gentium Plus'],
+                families: ['Ubuntu derivative Faust', 'Ubuntu Mono', 'Gentium Plus'],
                 // we don not need to specify urls as they are specified in the css files
                 urls: ['/css/webfonts.css']
             },
