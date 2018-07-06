@@ -27,6 +27,9 @@ if (window.Faust === undefined) {
 
 (function (Faust) {
 
+    // time out waiting for web fonts to be loaded in ms
+    var FONT_LOAD_TIMEOUT = 5000;
+
     Fonts = {};
     Fonts.active = function (callback) {
 
@@ -38,8 +41,8 @@ if (window.Faust === undefined) {
                 // we don not need to specify urls as they are specified in the css files
                 urls: ['/css/webfonts.css']
             },
-            // do not time out if font can't be loaded
-            timeout: 10, //Number.MAX_VALUE,
+
+            timeout: FONT_LOAD_TIMEOUT,
             active: function () {
                 // if we made it this far without 'fontinactive' occurring, then all
                 // fonts have been loaded
