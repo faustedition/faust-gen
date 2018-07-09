@@ -232,6 +232,8 @@ if (window.FaustTranscript === undefined) {
         wrapper.setAttribute('class', 'text-wrapper');
         this.textElement = this.svgDocument().createElementNS(SVG_NS, "text");
         this.textElement.setAttribute("class", "text " + this.getClassesString());
+        this.textElement.setAttribute("dominant-baseline", "hanging");
+
         this.textElement.appendChild(this.svgDocument().createTextNode(this.text));
         wrapper.appendChild(this.textElement);
         return wrapper;
@@ -408,7 +410,6 @@ if (window.FaustTranscript === undefined) {
         g.setAttribute('vector-effect', 'non-scaling-stroke');
         var transform = "scale(" + this.displayWidth / this.imageWidth + "," + this.displayHeight / this.imageHeight + ")";
         this.graphic.setAttribute('transform', transform);
-        g.setAttribute('transform', 'translate(0, -' + this.displayHeight + ')');
         g.appendChild(this.graphic);
         return g;
     };
@@ -457,7 +458,7 @@ if (window.FaustTranscript === undefined) {
             var textBBox = this.text.textElement.getBBox();
             this.view.setAttribute("x1", textBBox.x);
             this.view.setAttribute("x2", textBBox.x + textBBox.width);
-            var y = textBBox.height * this.yOffset;
+            var y = textBBox.y + (textBBox.height * this.yOffset);
             this.view.setAttribute("y1", y);
             this.view.setAttribute('y2', y);
         } catch (e) {

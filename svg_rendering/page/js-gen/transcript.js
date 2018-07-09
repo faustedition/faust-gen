@@ -395,7 +395,7 @@ if (window.FaustTranscript === undefined) {
             this.setAlign("hAlign", new FaustTranscript.Align(this, this.parent, this.rotX(), 0, 0, FaustTranscript.Align.IMPLICIT_BY_DOC_ORDER));
         }
 
-        INTERLINE_DISTANCE = 0.5;
+        INTERLINE_DISTANCE = 0.58;
         REGULAR_LINE_DISTANCE = 1;
 
         if (this.previous()) {
