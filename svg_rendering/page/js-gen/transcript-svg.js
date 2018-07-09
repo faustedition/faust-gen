@@ -216,7 +216,7 @@ if (window.FaustTranscript === undefined) {
         var originalLineWidth = this.constructor.superclass.getExt.call(this, 0)
         var extElement = this.svgDocument().createElementNS(SVG_NS, "rect");
         this.view.insertBefore(extElement, this.view.childNodes[0]);
-        extElement.setAttribute("width", originalLineWidth);
+        extElement.setAttribute("width", Math.max(originalLineWidth, 0.01)); // Never let width be 0, measuring errors
         extElement.setAttribute("height", String(Faust.TranscriptConfiguration.lineSpacingValue)
             + Faust.TranscriptConfiguration.lineSpacingUnit);
         matrix = matrix.rotate(coordRotation);
