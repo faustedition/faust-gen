@@ -258,15 +258,15 @@ if (window.Faust === undefined) {
                         }
 
                         if (rendTokens.indexOf("underline") >= 0) {
-                            var underline = new FaustTranscript.LineDecoration(textVC, handClasses, 'underline', 0.9);
+                            var underline = new FaustTranscript.LineDecoration(textVC, handClasses, 'underline', 0.1);
                             textVC.decorations.push(underline);
                         }
                         if (rendTokens.indexOf("underdots") >= 0) {
-                            var underdots = new FaustTranscript.LineDecoration(textVC, handClasses, 'underdots', 0.9);
+                            var underdots = new FaustTranscript.LineDecoration(textVC, handClasses, 'underdots', 0.2);
                             textVC.decorations.push(underdots);
                         }
                         if (rendTokens.indexOf("overline") >= 0) {
-                            var overline = new FaustTranscript.LineDecoration(textVC, handClasses, 'overline', 0.1);
+                            var overline = new FaustTranscript.LineDecoration(textVC, handClasses, 'overline', -0.7);
                             textVC.decorations.push(overline);
                         }
 
@@ -510,7 +510,7 @@ if (window.Faust === undefined) {
                             textVC.decorations.push(decoration);
 
                         } else {
-                            decoration = new FaustTranscript.LineDecoration(textVC, classes, 'strikethrough', 0.6 - yOffset);
+                            decoration = new FaustTranscript.LineDecoration(textVC, classes, 'strikethrough', -0.2 - yOffset);
                             textVC.decorations.push(decoration);
                         }
 
