@@ -55,7 +55,7 @@ if (window.Faust === undefined) {
         // should overlapping stuff be rendered on top of each other?
         // overlay : "overlay",
         overlay: "none",
-        stripWhitespace: ['overw'],
+        stripWhitespace: ['overw'],  // FIXME should be mod[@rend='overwrite']
         // distance from top of one line to top of the following line
         lineSpacingValue: "20",
         lineSpacingUnit: "pt",
@@ -88,7 +88,7 @@ if (window.Faust === undefined) {
                 }
             },
 
-            'document': {
+            'sourceDoc': {
 
                 vc: function (node, text, layoutState) {
                     return new FaustTranscript.Surface();
@@ -280,22 +280,38 @@ if (window.Faust === undefined) {
                 }
             },
 
-            'hspace': {
+            'space': {
                 vc: function (node, text, layoutState) {
-                    switch (node.data()["unit"]) {
-                        case "chars":
-                            if (node.data()['quantity']) {
-                                var width = String(node.data()['quantity']);
-                                return new FaustTranscript.HSpace(width);
-                            } else {
-                                throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "f:hspace: Please specify @qunatity");
+                    switch (node.data()["dim"]) {
+                        case "horizontal":
+                            switch (node.data()["unit"]) {
+                                case "chars":
+                                    if (node.data()['quantity']) {
+                                        var width = String(node.data()['quantity']);
+                                        return new FaustTranscript.HSpace(width);
+                                    } else {
+                                        throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "space: Please specify @quantity");
+                                    }
+                                    break;
+                                default:
+                                    throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "Invalid unit for space dim='horizontal'! Use 'chars'!");
                             }
                             break;
-                        default:
-                            throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "Invalid unit for hspace element! Use 'chars'!");
+                        default: // "vertical"
+                            //TODO real implementation, non-integer values
+                            switch (node.data()["unit"]) {
+                                case "lines":
+                                    if (node.data()['quantity']) {
+                                        return new FaustTranscript.VSpace(node.data()['quantity']);
+                                    } else throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "space: Please specify @quantity");
+                                    break;
+                                default:
+                                    throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "Invalid unit for space dim='vertical'! Use 'lines'!");
+                            }
                     }
                 }
             },
+
 
             'ins': {
                 vc: function (node, text, layoutState) {return new FaustTranscript.InlineViewComponent();},
@@ -377,23 +393,8 @@ if (window.Faust === undefined) {
                 }
             },
 
-            'over': {
-                text: function (annotation, textVC) {
-                    textVC.classes.push('over');
-                }
-            },
 
-            'overw': {
-                vc: function () {
-                    return new FaustTranscript.InlineViewComponent();
-                }
-            },
 
-            'patch': {
-                vc: function () {
-                    return new FaustTranscript.Patch();
-                }
-            },
 
 //				'point' : {
 //					vc: function (node, text, layoutState) {
@@ -430,7 +431,7 @@ if (window.Faust === undefined) {
                 }
             },
 
-            'rewrite': {
+            'retrace': {
 
                 text: function (annotation, textVC, layoutState) {
                     var rewrite = new FaustTranscript.CloneDecoration(textVC, [], 'rewrite', 0.005, -0.005);
@@ -451,72 +452,80 @@ if (window.Faust === undefined) {
                         if (rendTokens.indexOf('inbetween') >= 0 || rendTokens.indexOf('between') >= 0) {
                             textVC.classes.push('inbetween');
                         }
+                        if (rendTokens.indexOf('under') >= 0) {
+                            textVC.classes.push('under');
+                        }
+                        if (rendTokens.indexOf('over') >= 0) {
+                            textVC.classes.push('over');
+                        }
                     }
                 }
             },
 
-            'st': {
+
+            'mod': {
                 text: function (annotation, textVC, layoutState) {
 
                     var rendTokens = annotation.data.rend ? annotation.data.rend.split(' ') : [];
                     var classes = [];
                     var decoration;
 
-
-                    if (annotation.data.hand) {
-                        var hand = annotation.data.hand;
-                        classes = classes.concat(classesFromHandValue(hand));
-                    } else {
-                        // TODO: this is a hack, classes should not be directly copied from the text visual component but
-                        // instead data be taken from the annotation model
-                        var textClasses = textVC.classes.filter(function (x) {
-                            return x.startsWith('hand-') || x.startsWith('material-');
-                        })
-                        classes = textClasses;
-                    }
-
-                    if (rendTokens.indexOf('vertical') >= 0 || rendTokens.indexOf('block') >= 0) {
-                        if (typeof layoutState.stVertVCs === 'undefined') {
-                            layoutState.stVertVCs = {};
-                        }
-                        if (!(annotation.id in layoutState.stVertVCs)) {
-                            var imgPath = './img/';
-                            var imgFilename = rendTokens.indexOf('vertical') >= 0 ? 'grLineStraightVertical.svg#img'
-                                : 'grLineDiagonalFalling.svg#img';
-                            var stVC = new FaustTranscript.CoveringImage('grLine', classes, imgPath + imgFilename,
-                                100, 100, layoutState.rootVC);
-                            stVC.rotation = layoutState.currentZone.rotation;
-
-                            layoutState.stVertVCs[annotation.id] = stVC;
-                            layoutState.currentZone.addFloat(stVC);
-
-                            decoration = new FaustTranscript.NullDecoration(textVC, classes, 'strikethrough');
-                            textVC.decorations.push(decoration);
-                        }
-                        layoutState.stVertVCs[annotation.id].coveredVCs.push(textVC);
-                        textVC.classes.push('st-vertical');
-                    } else {
-                        // count the number of strikethroughs
-                        layoutState.textState.numSt = 'numSt' in layoutState.textState ?
-                            layoutState.textState.numSt : 0;
-
-                        var yOffsetPerStrikethrough = 0.15;
-                        var yOffset = yOffsetPerStrikethrough * layoutState.textState.numSt;
-
-
-                        if (rendTokens.indexOf('erase') >= 0) {
-                            textVC.classes.push('erase');
-                            decoration = new FaustTranscript.CloneDecoration(textVC, [], 'erase', 0, 0);
-                            textVC.decorations.push(decoration);
-
+                    if (rendTokens.indexOf('strikethrough') >= 0 || rendTokens.indexOf('erase') >= 0) {
+                        if (annotation.data.hand) {
+                            var hand = annotation.data.hand;
+                            classes = classes.concat(classesFromHandValue(hand));
                         } else {
-                            decoration = new FaustTranscript.LineDecoration(textVC, classes, 'strikethrough', 0.6 - yOffset);
-                            textVC.decorations.push(decoration);
+                            // TODO: this is a hack, classes should not be directly copied from the text visual component but
+                            // instead data be taken from the annotation model
+                            var textClasses = textVC.classes.filter(function (x) {
+                                return x.startsWith('hand-') || x.startsWith('material-');
+                            });
+                            classes = textClasses;
                         }
 
-                        layoutState.textState.numSt = layoutState.textState.numSt + 1;
-                    }
+                        if (rendTokens.indexOf('vertical') >= 0 || rendTokens.indexOf('block') >= 0) {
+                            if (typeof layoutState.stVertVCs === 'undefined') {
+                                layoutState.stVertVCs = {};
+                            }
+                            if (!(annotation.id in layoutState.stVertVCs)) {
+                                var imgPath = './img/';
+                                var imgFilename = rendTokens.indexOf('vertical') >= 0 ? 'grLineStraightVertical.svg#img'
+                                    : 'grLineDiagonalFalling.svg#img';
+                                var stVC = new FaustTranscript.CoveringImage('grLine', classes, imgPath + imgFilename,
+                                    100, 100, layoutState.rootVC);
+                                stVC.rotation = layoutState.currentZone.rotation;
 
+                                layoutState.stVertVCs[annotation.id] = stVC;
+                                layoutState.currentZone.addFloat(stVC);
+
+                                decoration = new FaustTranscript.NullDecoration(textVC, classes, 'strikethrough');
+                                textVC.decorations.push(decoration);
+                            }
+                            layoutState.stVertVCs[annotation.id].coveredVCs.push(textVC);
+                            textVC.classes.push('st-vertical');
+                        } else {
+                            // count the number of strikethroughs
+                            layoutState.textState.numSt = 'numSt' in layoutState.textState ?
+                                layoutState.textState.numSt : 0;
+
+                            var yOffsetPerStrikethrough = 0.15;
+                            var yOffset = yOffsetPerStrikethrough * layoutState.textState.numSt;
+
+
+                            if (rendTokens.indexOf('erase') >= 0) {
+                                textVC.classes.push('erase');
+                                decoration = new FaustTranscript.CloneDecoration(textVC, [], 'erase', 0, 0);
+                                textVC.decorations.push(decoration);
+
+                            } else {
+                                decoration = new FaustTranscript.LineDecoration(textVC, classes, 'strikethrough', 0.6 - yOffset);
+                                textVC.decorations.push(decoration);
+                            }
+
+                            layoutState.textState.numSt = layoutState.textState.numSt + 1;
+                        }
+
+                    }
                 }
             },
 
@@ -539,7 +548,10 @@ if (window.Faust === undefined) {
 
             'surface': {
                 vc: function (node, text, layoutState) {
-                    return new FaustTranscript.Surface();
+                    if (node.data()['type'] = 'patch')
+                        return new FaustTranscript.Patch();
+                    else
+                        return new FaustTranscript.Surface();
                 }
             },
 
@@ -581,45 +593,26 @@ if (window.Faust === undefined) {
             },
 
 
-            'under': {
+            'metamark': {
                 text: function (annotation, textVC, layoutState) {
-                    textVC.classes.push('under');
-                }
-            },
-
-            'used': {
-                text: function (annotation, textVC, layoutState) {
-                    if (typeof layoutState.usedVCs === 'undefined') {
-                        layoutState.usedVCs = {};
-                    }
-                    if (!(annotation.id in layoutState.usedVCs)) {
-                        var imgPath = './img/';
-                        var usedVC = new FaustTranscript.CoveringImage('grLine', [], imgPath + 'usedMarker.svg#svgroot',
-                            100, 100, layoutState.rootVC);
-                        usedVC.rotation = layoutState.currentZone.rotation;
-                        layoutState.usedVCs[annotation.id] = usedVC;
-                        layoutState.currentZone.addFloat(usedVC);
-                    }
-                    layoutState.usedVCs[annotation.id].coveredVCs.push(textVC);
-                    textVC.classes.push('used');
-                }
-            },
-
-            'vspace': {
-                vc: function (node, text, layoutState) {
-
-                    //TODO real implementation, non-integer values
-                    switch (node.data()["unit"]) {
-                        case "lines":
-                            if (node.data()['quantity']) {
-                                return new FaustTranscript.VSpace(node.data()['quantity']);
-                            } else throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "f:vspace: Please specify @qunatity");
-                            break;
-                        default:
-                            throw (FaustTranscript.ENCODING_EXCEPTION_PREFIX + "Invalid unit for vspace element! Use 'lines'!");
+                    if (annotation.data.function === 'used') {
+                        if (typeof layoutState.usedVCs === 'undefined') {
+                            layoutState.usedVCs = {};
+                        }
+                        if (!(annotation.id in layoutState.usedVCs)) {
+                            var imgPath = './img/';
+                            var usedVC = new FaustTranscript.CoveringImage('grLine', [], imgPath + 'usedMarker.svg#svgroot',
+                                100, 100, layoutState.rootVC);
+                            usedVC.rotation = layoutState.currentZone.rotation;
+                            layoutState.usedVCs[annotation.id] = usedVC;
+                            layoutState.currentZone.addFloat(usedVC);
+                        }
+                        layoutState.usedVCs[annotation.id].coveredVCs.push(textVC);
+                        textVC.classes.push('used');
                     }
                 }
             },
+
 
             'zone': {
                 vc: function (node, text, layoutState) {
