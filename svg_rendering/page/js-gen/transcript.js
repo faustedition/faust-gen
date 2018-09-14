@@ -289,6 +289,7 @@ if (window.FaustTranscript === undefined) {
      */
     FaustTranscript.Patch = function () {
         FaustTranscript.Patch.superclass.constructor.call(this);
+        this.classes.push("element-patch")
     };
 
     Y.extend(FaustTranscript.Patch, FaustTranscript.BlockViewComponent);
