@@ -548,7 +548,7 @@ if (window.Faust === undefined) {
 
             'surface': {
                 vc: function (node, text, layoutState) {
-                    if (node.data()['type'] = 'patch')
+                    if (node.data()['type'] === 'patch')
                         return new FaustTranscript.Patch();
                     else
                         return new FaustTranscript.Surface();
