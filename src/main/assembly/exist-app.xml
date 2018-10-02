@@ -12,6 +12,7 @@
 				<include>*.xql</include>
 				<include>*.xconf</include>
 				<include>*.xml</include>
+				<include>config/**/*</include>
 			</includes>		
 			<outputDirectory/>
             <filtered>true</filtered>
