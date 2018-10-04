@@ -35,6 +35,11 @@
 			<includes><include>**/*</include></includes>
 			<outputDirectory>data/info</outputDirectory>
 		</fileSet>
+		<fileSet>
+			<directory>${project.build.directory}/www</directory>
+			<includes><include>bibliography.html</include></includes>
+			<outputDirectory>data/info</outputDirectory>
+		</fileSet>
 	</fileSets>
 	<baseDirectory/>
 </assembly>
