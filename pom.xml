@@ -125,7 +125,7 @@
 			<extension>
 				<groupId>kr.motd.maven</groupId>
 				<artifactId>os-maven-plugin</artifactId>
-				<version>1.4.0.Final</version>
+				<version>1.6.0</version>
 			</extension>
 		</extensions>
 			
@@ -469,7 +469,7 @@
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
 						<executions>
-							<execution>
+							<!--execution>
 								<id>app2xml</id>
 								<goals><goal>exec</goal></goals>
 								<phase>generate-sources</phase>
@@ -477,7 +477,7 @@
 									<executable>src/main/xproc/text/app2xml.py</executable>
 									<workingDirectory>src/main/xproc/text</workingDirectory>
 								</configuration>
-							</execution>
+							</execution-->
 							<execution>
 								<id>xproc</id>
 								<goals><goal>java</goal></goals>

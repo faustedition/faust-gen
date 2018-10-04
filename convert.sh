@@ -10,11 +10,12 @@
 ### Konfiguration:
 
 # Eingabeverzeichnis. Hier liegen Unterverzeichnisse mit den Original-Digitalisaten drin
-input_dir="$PWD"/img/tif 
+#input_dir="$PWD"/img/tif 
+input_dir="/media/vitt/909613EC9613D218/Drucke"
 #input_dir="/faust/img/tif"
 
 # Ausgabeverzeichnis. Darin entstehen Verzeichnise jpg, jpg_tiles und metadata 
-output_dir=$PWD/facsimile # 
+output_dir=/mnt/data/vitt/facsimile
 #output_dir=/faust/transcript/facsimile
 
 ### Detailanpassung, hier idR nichts verändern:
@@ -67,10 +68,10 @@ do
   out_file1=$(echo "$file" | sed "s#^\.#"$input_dir"#" )
   out_file2=$(echo "$file" | sed "s#^\.#"$output_jpg"#;s/\.tif$/_0\.jpg/" )
   out_file3=$(echo "$file" | sed "s#^\.#"$output_jpg"#;s/\.tif$/_preview\.jpg/" )
-  cmd="convert ${out_file1}[0] -strip $out_file2"
+  cmd="convert -quiet ${out_file1}[0] -strip $out_file2"
   echo "running: $cmd"
-  convert "${out_file1}"[0] -strip "${out_file2}"
-  convert "${out_file1}"[0] -strip -resize 240x360 "${out_file3}"
+  convert -quiet "${out_file1}"[0] -strip "${out_file2}"
+  convert -quiet "${out_file1}"[0] -strip -resize 240x360 "${out_file3}"
 
 
   #scale images
@@ -79,9 +80,9 @@ do
   do
     scaled_file1=$(echo "$out_file2" | sed "s/[0-9]\.jpg/$i\.jpg/" )
     scaled_file2=$(echo "$out_file2" | sed "s/[0-9]\.jpg/$((i+1))\.jpg/" )
-    cmd="convert $scaled_file1 -thumbnail 50% $scaled_file2"
+    cmd="convert -quiet $scaled_file1 -thumbnail 50% $scaled_file2"
 #    echo "         $cmd"
-    convert "${scaled_file1}" -thumbnail 50% "${scaled_file2}"
+    convert -quiet "${scaled_file1}" -thumbnail 50% "${scaled_file2}"
   done
 
   #create tiles
@@ -90,9 +91,9 @@ do
   do
     scaled_file=$(echo "$scaled_file1" | sed "s/[0-9]\.jpg/$i\.jpg/" )
     tiled_file=$(echo "$scaled_file" | sed "s/\.jpg/_%\[filename:tile\]\.jpg/;s#"$output_jpg"#"$output_tiles"#" )
-    cmd="convert $scaled_file -strip -crop ${tile_width}x${tile_height} -set filename:tile %[fx:page.x/${tile_width}]_%[fx:page.y/${tile_height}] +repage +adjoin $tiled_file"
+    cmd="convert -quiet $scaled_file -strip -crop ${tile_width}x${tile_height} -set filename:tile %[fx:page.x/${tile_width}]_%[fx:page.y/${tile_height}] +repage +adjoin $tiled_file"
 #    echo "         $cmd"
-    convert "${scaled_file}" -strip -crop ${tile_width}x${tile_height} -set filename:tile %[fx:page.x/${tile_width}]_%[fx:page.y/${tile_height}] +repage +adjoin "${tiled_file}"
+    convert -quiet "${scaled_file}" -strip -crop ${tile_width}x${tile_height} -set filename:tile %[fx:page.x/${tile_width}]_%[fx:page.y/${tile_height}] +repage +adjoin "${tiled_file}"
   done
 
   #create json metadata

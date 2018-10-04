@@ -12,9 +12,10 @@
 				<include>*.xql</include>
 				<include>*.xconf</include>
 				<include>*.xml</include>
+				<include>config/**/*</include>
 			</includes>		
 			<outputDirectory/>
-            <filtered>true</filtered>
+			<filtered>true</filtered>
 		</fileSet>
 		<fileSet>
 			<directory>${project.basedir}/src/main/xproc/xslt</directory>
@@ -28,6 +29,11 @@
 			<directory>${project.build.directory}/search</directory>
 			<includes><include>**/*</include></includes>
 			<outputDirectory>data</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>${project.basedir}/src/main/web/content</directory>
+			<includes><include>**/*</include></includes>
+			<outputDirectory>data/info</outputDirectory>
 		</fileSet>
 	</fileSets>
 	<baseDirectory/>
