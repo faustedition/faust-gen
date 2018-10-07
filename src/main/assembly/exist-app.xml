@@ -10,6 +10,7 @@
 			<directory>${project.basedir}/src/main/xproc/exist</directory>
 			<includes>
 				<include>*.xql</include>
+				<include>*.xqm</include>
 				<include>*.xconf</include>
 				<include>*.xml</include>
 				<include>config/**/*</include>
