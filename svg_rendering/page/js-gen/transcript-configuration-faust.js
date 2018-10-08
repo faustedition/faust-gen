@@ -55,7 +55,7 @@ if (window.Faust === undefined) {
         // should overlapping stuff be rendered on top of each other?
         // overlay : "overlay",
         overlay: "none",
-        stripWhitespace: ['overw'],  // FIXME should be mod[@rend='overwrite']
+        stripWhitespace: ['overw'],
         // distance from top of one line to top of the following line
         lineSpacingValue: "20",
         lineSpacingUnit: "pt",
@@ -336,6 +336,24 @@ if (window.Faust === undefined) {
                         vc.add(Faust.TranscriptLayout.createText(insertionSign, annotationStart, annotationEnd,
                             text, layoutState));
                     }
+                }
+            },
+
+            'over': {
+                text: function (annotation, textVC) {
+                    textVC.classes.push('over');
+                }
+            },
+
+            'overw': {
+                vc: function () {
+                    return new FaustTranscript.InlineViewComponent();
+                }
+            },
+
+             'under': {
+                text: function (annotation, textVC, layoutState) {
+                    textVC.classes.push('under');
                 }
             },
 
