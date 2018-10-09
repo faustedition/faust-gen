@@ -1,6 +1,6 @@
 [submodule "data"]
 	path = data
-	url = wrzh074.rzhousing.uni-wuerzburg.de:/mnt/data/htdocs/.git
+	url = git://github.com/faustedition/faust-xml.git
 	branch = master
 [submodule "src/main/xproc"]
 	path = src/main/xproc
