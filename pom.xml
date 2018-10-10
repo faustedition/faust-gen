@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.faustedition</groupId>
 	<artifactId>faust-gen</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0-SNAPSHOT</version>
 	<name>Faust-Edition Site Generation</name>
 	
 	<properties>
@@ -13,7 +13,7 @@
 		<faust.diplo.server>false</faust.diplo.server> <!-- Run only the web server, don't actually convert -->
 		<faust.diplo.port>0</faust.diplo.port> <!-- Specify port for server, default to auto -->
 		<faust.diplo.debug>false</faust.diplo.debug>   <!-- Debug phantomjs, produces massive output -->
-		<exist.app-name>faust-dev</exist.app-name>
+		<exist.app-name>faust-1</exist.app-name>
 	</properties>
 
 	<repositories>
