@@ -4,8 +4,10 @@ plugins {
 }
 
 
-def architecture = "linux-x86_64"   // TODO make adjustable
-def toolDir = "$buildDir/tools"
+ext.architecture = "linux-x86_64"   // TODO make adjustable
+ext.toolDir = "$buildDir/tools"
+ext.dataDir = file('data', PathValidation.DIRECTORY)
+
 
 
 group = 'net.faustedition'
@@ -50,8 +52,8 @@ dependencies {
     implementation 'com.google.guava:guava-collections:r03'
     implementation 'com.xmlcalabash:xmlcalabash:1.1.13-96'
 
-    tools 'slimerjs:slimerjs:1.0.0-beta.1@tar.bz2'
-    tools 'org.mozilla:firefox:57.0.4@tar.bz2'
+    tools 'slimerjs:slimerjs:1.0.0@tar.bz2'
+    tools 'org.mozilla:firefox:59.0@tar.bz2'
 
     testCompile 'junit:junit:4.12'
 }
@@ -68,15 +70,25 @@ task generateSVGs(type: JavaExec) {
     dependsOn getTools
     dependsOn classes
 
+    inputs.dir("$dataDir/xml/transcript")
+    outputs.dir("$buildDir/www/transcript")
+
     environment 'LANG', 'en_US.UTF-8'
     environment 'LC_ALL', 'en_US.UTF-8'
     environment 'SLIMERJSLAUNCHER', "$toolDir/firefox/firefox"
 
     systemProperties([
-            'phantomjs.binary': "$toolDir/slimerjs-1.0.0-beta.1/slimerjs",
-    ])
+            'phantomjs.binary': "$toolDir/slimerjs-1.0.0/slimerjs" ,
+            'faust.diplo.target': buildDir
+        ])
+    systemProperties(project.properties.findAll {key, value -> key.matches('^faust\\.diplo\\.')})
 
     classpath sourceSets.main.runtimeClasspath
     main 'net.faustedition.gen.DiplomaticConversion'
 }
+build.dependsOn generateSVGs
 
+
+task showProps { doLast {
+    project.properties.each { key, value -> println "$key=$value"}
+}}
