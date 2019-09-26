@@ -73,6 +73,7 @@ task generateSVGs(type: JavaExec) {
     description "Generates SVGs of diplomatic transcripts and overlays"
     dependsOn installTools
     dependsOn classes
+    dependsOn copyWeb // there are symlinks from svg_rendering/page to build/www. Probably not the best solution.
 
     inputs.dir("$xmlDir/transcript")
     outputs.dir("$buildDir/www/transcript")
