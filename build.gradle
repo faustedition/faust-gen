@@ -69,6 +69,17 @@ task installTools(type: Copy) {
     outputs.dir(toolDir)
 }
 
+task copyWeb(type: CopyWithSymlink) {
+    description "Copy the web page sources"
+    from fileTree("src/main/web")
+    into "$buildDir/www"
+}
+
+task copySource(type: CopyWithSymlink) {
+    from xmlDir
+    into "$buildDir/www/xml"
+}
+
 task generateSVGs(type: JavaExec) {
     description "Generates SVGs of diplomatic transcripts and overlays"
     dependsOn installTools
@@ -86,21 +97,10 @@ task generateSVGs(type: JavaExec) {
             'phantomjs.binary': "$toolDir/slimerjs-1.0.0/slimerjs" ,
             'faust.diplo.target': buildDir
         ])
-    systemProperties(project.properties.findAll {key, value -> key.matches('^faust\\.diplo\\.')})
+    systemProperties(project.properties.findAll {key, value -> key.matches('^faust\\.diplo\\..*')})
 
     classpath sourceSets.main.runtimeClasspath
     main 'net.faustedition.gen.DiplomaticConversion'
-}
-
-task copyWeb(type: CopyWithSymlink) {
-    description "Copy the web page sources"
-    from fileTree("src/main/web")
-    into "$buildDir/www"
-}
-
-task copySource(type: CopyWithSymlink) {
-    from xmlDir
-    into "$buildDir/www/xml"
 }
 
 build.dependsOn generateSVGs, copyWeb, copySource
