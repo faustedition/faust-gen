@@ -4,9 +4,10 @@ plugins {
 }
 
 
+
 ext.architecture = "linux-x86_64"   // TODO make adjustable
 ext.toolDir = "$buildDir/tools"
-ext.dataDir = file('data', PathValidation.DIRECTORY)
+ext.xmlDir = file('data/xml', PathValidation.DIRECTORY)
 
 
 
@@ -59,18 +60,21 @@ dependencies {
 }
 
 
-task getTools(type: Copy) {
+task installTools(type: Copy) {
+    description "Installs SlimerJS and Firefox"
     configurations.tools.asFileTree.each {
         from(tarTree(it))
     }
     into toolDir
+    outputs.dir(toolDir)
 }
 
 task generateSVGs(type: JavaExec) {
-    dependsOn getTools
+    description "Generates SVGs of diplomatic transcripts and overlays"
+    dependsOn installTools
     dependsOn classes
 
-    inputs.dir("$dataDir/xml/transcript")
+    inputs.dir("$xmlDir/transcript")
     outputs.dir("$buildDir/www/transcript")
 
     environment 'LANG', 'en_US.UTF-8'
@@ -86,7 +90,19 @@ task generateSVGs(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath
     main 'net.faustedition.gen.DiplomaticConversion'
 }
-build.dependsOn generateSVGs
+
+task copyWeb(type: CopyWithSymlink) {
+    description "Copy the web page sources"
+    from fileTree("src/main/web")
+    into "$buildDir/www"
+}
+
+task copySource(type: CopyWithSymlink) {
+    from xmlDir
+    into "$buildDir/www/xml"
+}
+
+build.dependsOn generateSVGs, copyWeb, copySource
 
 
 task showProps { doLast {
