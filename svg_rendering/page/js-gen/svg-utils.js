@@ -242,8 +242,9 @@ if (window.SvgUtils === undefined) {
         }
 
         var inv = matrix.inverse();
-
-        inv = inv.multiply(element.getCTM());
+        var ctm = element.getCTM();
+        if (ctm)
+            inv = inv.multiply(ctm);
 
         // create an array of SVGPoints for each corner
         // of the bounding box and update their location
