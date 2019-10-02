@@ -9,6 +9,15 @@ ext.architecture = "linux-x86_64"   // TODO make adjustable
 ext.toolDir = "$buildDir/tools"
 ext.xmlDir = file('data/xml', PathValidation.DIRECTORY)
 
+if (!project.hasProperty('dataDir')) {
+	def dataDirCandidate = rootProject.file('data/xml')
+	if (dataDirCandidate.isDirectory())
+		project.ext.dataDir = dataDirCandidate
+	else {
+		throw new FileNotFoundException("Data directory not found. Either put data into $dataDirCandidate, or set the dataDir property.")
+	}
+	logger.info("Using data from $dataDirCandidate")
+}
 
 
 group = 'net.faustedition'
@@ -103,9 +112,13 @@ task generateSVGs(type: JavaExec) {
     main 'net.faustedition.gen.DiplomaticConversion'
 }
 
-build.dependsOn generateSVGs, copyWeb, copySource
+assemble.dependsOn generateSVGs, copyWeb, copySource
 
 
 task showProps { doLast {
     project.properties.each { key, value -> println "$key=$value"}
 }}
+
+tasks.getByPath("src:main:xproc:generateSearch").dependsOn(tasks.getByPath("macrogen:runMacrogenAnalysis"))
+tasks.getByPath("macrogen:runMacrogenReporting").dependsOn(tasks.getByPath("src:main:xproc:paraTable"))
+tasks.getByPath("macrogen:runMacrogenReporting").dependsOn(tasks.getByPath("src:main:xproc:bargraphData"))
