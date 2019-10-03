@@ -13,7 +13,7 @@
 		<faust.diplo.server>false</faust.diplo.server> <!-- Run only the web server, don't actually convert -->
 		<faust.diplo.port>0</faust.diplo.port> <!-- Specify port for server, default to auto -->
 		<faust.diplo.debug>false</faust.diplo.debug>   <!-- Debug phantomjs, produces massive output -->
-		<exist.app-name>faust-dev</exist.app-name>
+		<existAppName>faust-dev</existAppName>
 	</properties>
 
 	<repositories>
@@ -189,7 +189,7 @@
 						<goals><goal>single</goal></goals>
 						<configuration>
 							<descriptor>${basedir}/src/main/assembly/exist-app.xml</descriptor>
-							<finalName>${exist.app-name}</finalName>
+							<finalName>${existAppName}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
 							<attach>false</attach>
 						</configuration>
@@ -208,8 +208,8 @@
 						<goals><goal>run</goal></goals>
 						<configuration>
 							<target>
-								<move file="${project.build.directory}/${exist.app-name}.zip" 
-									tofile="${project.build.directory}/${exist.app-name}.xar"/>
+								<move file="${project.build.directory}/${existAppName}.zip"
+									tofile="${project.build.directory}/${existAppName}.xar"/>
 							</target>
 						</configuration>
 					</execution>

@@ -1,3 +1,6 @@
+import org.apache.tools.ant.filters.*
+
+
 plugins {
     id 'base'
     id 'java'
@@ -112,7 +115,48 @@ task generateSVGs(type: JavaExec) {
     main 'net.faustedition.gen.DiplomaticConversion'
 }
 
-assemble.dependsOn generateSVGs, copyWeb, copySource
+task xar(type: Zip) {
+    description "Assembles the eXist app for the search part"
+    group "Generate HTML"
+    dependsOn 'src:main:xproc:generateSearch'
+    dependsOn 'src:main:xproc:testimony'
+    dependsOn 'src:main:xproc:metadataHtml'
+    dependsOn 'src:main:xproc:bibliography'
+    dependsOn copyWeb
+    archiveFileName = "${existAppName}.xar" // FIXME property
+    destinationDir = buildDir
+    from(project.file('src/main/xproc/exist')) {
+        include "*.xql"
+        include "*.xqm"
+        include "*.xconf"
+        include "build.xml"
+        include "config/**/*"
+    }
+    from(project.file('src/main/xproc/exist')) {
+        include "*.xml"
+        exclude "build.xml"
+        expand(project.properties)
+    }
+    from(project.file('src/main/xproc/xslt')) {
+        include '*.xsl'
+        include '*.xml'
+        into 'xslt'
+    }
+    from("$buildDir/search") {
+        include '**/*'
+        into 'data'
+    }
+    from(project.file('src/main/web/content')) {
+        include '**/*'
+        into 'data/info'
+    }
+    from("$buildDir/www") {
+        include 'bibliography.html'
+        into 'data/info'
+    }
+}
+
+assemble.dependsOn generateSVGs, copyWeb, copySource, xar
 
 
 task showProps { doLast {
