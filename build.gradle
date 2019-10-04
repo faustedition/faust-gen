@@ -51,11 +51,12 @@ repositories {
 //    maven { url = 'http://dev.digital-humanities.de/nexus/content/groups/public' }
     maven { url = 'http://dev.dariah.eu/nexus/content/groups/public' }
     maven { url = 'http://maven.restlet.com' }
-    maven { url = 'https://raw.github.com/eXist-db/mvn-repo/master/' }
+    maven { url = 'https://raw.github.com/eXist-db/mvn-repo/master/' } // for < 5.0.0
 }
 
 configurations {
     tools
+    exist
 }
 
 dependencies {
@@ -67,6 +68,10 @@ dependencies {
 
     tools 'slimerjs:slimerjs:1.0.0@tar.bz2'
     tools 'org.mozilla:firefox:59.0@tar.bz2'
+
+    // exist 'org.exist-db:exist-ant:4.4.0'        // ≥ 5.0.0
+    exist 'org.exist-db:exist-core:4.4.0'          // < 5.0.0
+    exist 'org.exist-db:exist-optional:4.4.0'      // < 5.0.0
 
     testCompile 'junit:junit:4.12'
 }
@@ -123,7 +128,7 @@ task xar(type: Zip) {
     dependsOn 'src:main:xproc:metadataHtml'
     dependsOn 'src:main:xproc:bibliography'
     dependsOn copyWeb
-    archiveFileName = "${existAppName}.xar" // FIXME property
+    archiveFileName = "${existAppName}.xar"
     destinationDir = buildDir
     from(project.file('src/main/xproc/exist')) {
         include "*.xql"
@@ -153,6 +158,38 @@ task xar(type: Zip) {
     from("$buildDir/www") {
         include 'bibliography.html'
         into 'data/info'
+    }
+}
+
+task deployToExist {
+    dependsOn xar
+    inputs.file("$buildDir/${existAppName}.xar")
+
+    description 'Deploys the search app (xar) to the configured eXist instance'
+    group 'deploy'
+
+    doLast {
+        ant.taskdef(name: 'xdbStore', classname: 'org.exist.ant.XMLDBStoreTask', classpath: configurations.exist.asPath)
+        ant.taskdef(name: 'xdbXQuery', classname: 'org.exist.ant.XMLDBXQueryTask', classpath: configurations.exist.asPath)
+        ant.xdbStore(uri: "xmldb:exist://localhost:8080/exist/xmlrpc/db/upload",
+                user: 'admin', password: 'geheim', // FIXME before including real credentials extract to credentials plugin
+                createcollection: true,
+                srcfile: "$buildDir/${existAppName}.xar",
+        )
+        ant.xdbXQuery(uri: "xmldb:exist://localhost:8080/exist/xmlrpc/db",
+                user: 'admin', password: 'geheim',  // FIXME before including real credentials extract to credentials plugin
+                outputproperty: 'existDeployResult',
+                query: """
+                    try {
+                        repo:undeploy('http://faustedition.net/exist/${existAppName}'),
+                        repo:remove('http://faustedition.net/exist/${existAppName}')
+                    } catch * {
+                        'Undeployment of previous app ${existAppName} failed'
+                    },
+                    repo:install-and-deploy-from-db('/db/upload/${existAppName}.xar')
+                """
+        )
+        logger.info(ant.existDeployResult)
     }
 }
 
