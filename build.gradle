@@ -37,6 +37,7 @@ repositories {
         patternLayout {
             artifact "[module]/releases/[revision]/$architecture/en-US/[module]-[revision](.[ext])"
         }
+        metadataSources { artifact() }
         content { includeGroup "org.mozilla" }
     }
     ivy {
@@ -44,6 +45,7 @@ repositories {
         patternLayout {
             artifact "releases/[revision]/[module]-[revision](.[ext])"
         }
+        metadataSources { artifact() }
         content { includeGroup "slimerjs" }
     }
 
