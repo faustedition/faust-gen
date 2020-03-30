@@ -51,8 +51,8 @@ repositories {
 
     mavenCentral()
 //    maven { url = 'http://dev.digital-humanities.de/nexus/content/groups/public' }
-    maven { url = 'http://dev.dariah.eu/nexus/content/groups/public' }
-    maven { url = 'http://maven.restlet.com' }
+    maven { url = 'https://dev.dariah.eu/nexus/content/groups/public' }
+    maven { url = 'https://maven.restlet.com' }
     maven { url = 'https://raw.github.com/eXist-db/mvn-repo/master/' } // for < 5.0.0
 }
 
@@ -66,7 +66,6 @@ dependencies {
     implementation 'de.faustedition:faust:1.4-SNAPSHOT'
     implementation 'com.mycila:mycila-xmltool:4.4.ga'
     implementation 'com.google.guava:guava-collections:r03'
-    implementation 'com.xmlcalabash:xmlcalabash:1.1.13-96'
 
     tools 'slimerjs:slimerjs:1.0.0@tar.bz2'
     tools 'org.mozilla:firefox:59.0@tar.bz2'
