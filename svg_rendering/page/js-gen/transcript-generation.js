@@ -208,6 +208,20 @@ var transcriptGeneration = (function () {
             }
         });
     }
+    
+    transcriptGeneration.createPromise = function createPromise(transcript, links) {
+        return new Promise((resolve, reject) => {
+            transcriptGeneration.createDiplomaticSvg(transcript, (diploSvg) => {
+                const result = {svg: serialize(diploSvg), overlay: undefined};
+                if (links) {
+                    const overlaySvg = transcriptGeneration.createFacsimileOverlaySvg(diploSvg, links);
+                    result.overlay = serialize(overlaySvg);
+                    overlaySvg.parentNode.removeChild(overlaySvg);
+                }
+                resolve(result);
+            });
+        });
+    }
 
     return transcriptGeneration;
 })();
