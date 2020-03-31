@@ -48,6 +48,7 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.s9api.XsltTransformer;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class DiplomaticConversion {
 
@@ -71,8 +72,6 @@ public class DiplomaticConversion {
 	private static boolean debugPhantomJS;
 
 	private static boolean onlyWebServer;
-
-	private static ImmutableList<String> baseCmdLine;
 
 	public static class TranscriptPage {
 		public final Document document;
@@ -133,17 +132,11 @@ public class DiplomaticConversion {
 			logger.fine("Converting " + this);
 			final Path resolvedSvgPath = diplomatic_path.resolve(getPagePath("svg"));
 			resolvedSvgPath.getParent().toFile().mkdirs();
-			final ArrayList<String> arguments = Lists.newArrayList(
-					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
-					"rendersvgs.js",
-					serverURL, 
-					getJsonPath().toString(),
-					resolvedSvgPath.toString());
-			if (debugPhantomJS)
-				arguments.add(1, "--debug=errors");
-			if (arguments.get(0).contains("slimerjs"))
-				arguments.add(1, "--headless");
-			
+            final ArrayList<String> arguments = getRenderCommandLine();
+
+            arguments.add(getJsonPath().toString());
+			arguments.add(resolvedSvgPath.toString());
+
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
 				arguments.add(imageLinkPath.get().toString());
@@ -183,7 +176,28 @@ public class DiplomaticConversion {
 		
 	}
 
-	public static class Document {
+    private static ArrayList<String> getRenderCommandLine() {
+        String renderScript = System.getProperty("node.script");
+        final String renderBinary;
+        if (renderScript == null) {
+            renderBinary = System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs");
+            renderScript = "rendersvgs.js";
+        } else {
+            renderBinary = System.getProperty("node.binary", "node");
+        }
+
+        final ArrayList<String> arguments = Lists.newArrayList(
+                renderBinary,
+                renderScript,
+                serverURL);
+        if (debugPhantomJS)
+            arguments.add(1, "--debug=errors");
+        if (arguments.get(0).contains("slimerjs"))
+            arguments.add(1, "--headless");
+        return arguments;
+    }
+
+    public static class Document {
 
 		private final Path path;
 		/** The base faust:// uri for the transcripts of this document */
@@ -220,6 +234,63 @@ public class DiplomaticConversion {
 		}
 	}
 
+	public static void writeJob(final Stream<Document> documents) throws IOException {
+	    class TranscriptRepr {
+            private final String json;
+            private final int pageNo;
+            private final String links;
+            private final String out;
+
+            public TranscriptRepr(TranscriptPage page) {
+	            this.json = page.getJsonPath().toString();
+	            this.pageNo = page.pageNo;
+	            this.out = String.valueOf(page.getPagePath("svg"));
+                this.links = page.getImageLinkPath().isPresent()? page.getImageLinkPath().get().toString(): null;
+
+            }
+
+            public String getJson() {
+                return json;
+            }
+
+            public int getPageNo() {
+                return pageNo;
+            }
+
+            public String getLinks() {
+                return links;
+            }
+
+            public String getOut() {
+                return out;
+            }
+        }
+	    class DocumentRepr {
+
+            private final String sigil;
+
+            public Object[] getTranscripts() {
+                return transcripts;
+            }
+
+            private final Object[] transcripts;
+
+            public DocumentRepr(Document doc) {
+	            this.transcripts = doc.transcripts().map(TranscriptRepr::new).toArray();
+                this.sigil = doc.sigil;
+            }
+
+            public String getSigil() {
+                return sigil;
+            }
+        }
+
+        final Object[] docReprs = documents.map(DocumentRepr::new).toArray();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        logger.info(docReprs[0].toString());
+        objectMapper.writeValue(target.resolve("render-job.json").toFile(), docReprs);
+    }
+
 	public static void main(final String[] args) throws IOException {
 		Properties properties = System.getProperties();
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
@@ -231,13 +302,8 @@ public class DiplomaticConversion {
 		try {
 			serverURL = new URL("http", "localhost", webServer.getListeningPort(), "/transcript-generation.html").toString();
 			logger.info(MessageFormat.format("Web server runs on {0}", serverURL));
-			baseCmdLine = ImmutableList.of(
-					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
-					"--profile", profile.toString(),
-					debugPhantomJS? "--debug=true" : "",
-					"rendersvgs.js",
-					serverURL);
-			logger.info(() -> "PhantomJS command line: " + String.join(" ", baseCmdLine) + " <input> <output> [<links> <linkoutput>]");
+			List<String> baseCmdLine = getRenderCommandLine();
+			logger.info(() -> "Render script command line: " + String.join(" ", baseCmdLine) + " <input> <output> [<links> <linkoutput>]");
 			
 		
 			if (onlyWebServer) {
@@ -254,7 +320,9 @@ public class DiplomaticConversion {
 						.map(page -> page.writeTranscriptJson())
 						.collect(Collectors.toList());
 				ImmutableList<TranscriptPage> allPages = ImmutableList.copyOf(transcriptPages);
-				
+
+				logger.info("Writing render job description");
+				writeJob(getDocuments());
 				 
 				 
 				int nThreads = Integer.valueOf(System.getProperty("faust.diplo.threads", "0"));
