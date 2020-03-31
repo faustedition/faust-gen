@@ -48,6 +48,7 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.s9api.XsltTransformer;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class DiplomaticConversion {
 
@@ -233,6 +234,63 @@ public class DiplomaticConversion {
 		}
 	}
 
+	public static void writeJob(final Stream<Document> documents) throws IOException {
+	    class TranscriptRepr {
+            private final String json;
+            private final int pageNo;
+            private final String links;
+            private final String out;
+
+            public TranscriptRepr(TranscriptPage page) {
+	            this.json = page.getJsonPath().toString();
+	            this.pageNo = page.pageNo;
+	            this.out = String.valueOf(page.getPagePath("svg"));
+                this.links = page.getImageLinkPath().isPresent()? page.getImageLinkPath().get().toString(): null;
+
+            }
+
+            public String getJson() {
+                return json;
+            }
+
+            public int getPageNo() {
+                return pageNo;
+            }
+
+            public String getLinks() {
+                return links;
+            }
+
+            public String getOut() {
+                return out;
+            }
+        }
+	    class DocumentRepr {
+
+            private final String sigil;
+
+            public Object[] getTranscripts() {
+                return transcripts;
+            }
+
+            private final Object[] transcripts;
+
+            public DocumentRepr(Document doc) {
+	            this.transcripts = doc.transcripts().map(TranscriptRepr::new).toArray();
+                this.sigil = doc.sigil;
+            }
+
+            public String getSigil() {
+                return sigil;
+            }
+        }
+
+        final Object[] docReprs = documents.map(DocumentRepr::new).toArray();
+        final ObjectMapper objectMapper = new ObjectMapper();
+        logger.info(docReprs[0].toString());
+        objectMapper.writeValue(target.resolve("render-job.json").toFile(), docReprs);
+    }
+
 	public static void main(final String[] args) throws IOException {
 		Properties properties = System.getProperties();
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
@@ -262,7 +320,9 @@ public class DiplomaticConversion {
 						.map(page -> page.writeTranscriptJson())
 						.collect(Collectors.toList());
 				ImmutableList<TranscriptPage> allPages = ImmutableList.copyOf(transcriptPages);
-				
+
+				logger.info("Writing render job description");
+				writeJob(getDocuments());
 				 
 				 
 				int nThreads = Integer.valueOf(System.getProperty("faust.diplo.threads", "0"));
