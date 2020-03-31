@@ -72,8 +72,6 @@ public class DiplomaticConversion {
 
 	private static boolean onlyWebServer;
 
-	private static ImmutableList<String> baseCmdLine;
-
 	public static class TranscriptPage {
 		public final Document document;
 		private final String page;
@@ -133,17 +131,11 @@ public class DiplomaticConversion {
 			logger.fine("Converting " + this);
 			final Path resolvedSvgPath = diplomatic_path.resolve(getPagePath("svg"));
 			resolvedSvgPath.getParent().toFile().mkdirs();
-			final ArrayList<String> arguments = Lists.newArrayList(
-					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
-					"rendersvgs.js",
-					serverURL, 
-					getJsonPath().toString(),
-					resolvedSvgPath.toString());
-			if (debugPhantomJS)
-				arguments.add(1, "--debug=errors");
-			if (arguments.get(0).contains("slimerjs"))
-				arguments.add(1, "--headless");
-			
+            final ArrayList<String> arguments = getRenderCommandLine();
+
+            arguments.add(getJsonPath().toString());
+			arguments.add(resolvedSvgPath.toString());
+
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
 				arguments.add(imageLinkPath.get().toString());
@@ -183,7 +175,28 @@ public class DiplomaticConversion {
 		
 	}
 
-	public static class Document {
+    private static ArrayList<String> getRenderCommandLine() {
+        String renderScript = System.getProperty("node.script");
+        final String renderBinary;
+        if (renderScript == null) {
+            renderBinary = System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs");
+            renderScript = "rendersvgs.js";
+        } else {
+            renderBinary = System.getProperty("node.binary", "node");
+        }
+
+        final ArrayList<String> arguments = Lists.newArrayList(
+                renderBinary,
+                renderScript,
+                serverURL);
+        if (debugPhantomJS)
+            arguments.add(1, "--debug=errors");
+        if (arguments.get(0).contains("slimerjs"))
+            arguments.add(1, "--headless");
+        return arguments;
+    }
+
+    public static class Document {
 
 		private final Path path;
 		/** The base faust:// uri for the transcripts of this document */
@@ -231,13 +244,8 @@ public class DiplomaticConversion {
 		try {
 			serverURL = new URL("http", "localhost", webServer.getListeningPort(), "/transcript-generation.html").toString();
 			logger.info(MessageFormat.format("Web server runs on {0}", serverURL));
-			baseCmdLine = ImmutableList.of(
-					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
-					"--profile", profile.toString(),
-					debugPhantomJS? "--debug=true" : "",
-					"rendersvgs.js",
-					serverURL);
-			logger.info(() -> "PhantomJS command line: " + String.join(" ", baseCmdLine) + " <input> <output> [<links> <linkoutput>]");
+			List<String> baseCmdLine = getRenderCommandLine();
+			logger.info(() -> "Render script command line: " + String.join(" ", baseCmdLine) + " <input> <output> [<links> <linkoutput>]");
 			
 		
 			if (onlyWebServer) {
