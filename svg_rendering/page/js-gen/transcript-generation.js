@@ -43,11 +43,7 @@ var transcriptGeneration = (function () {
 //      renderContainer.style.height = "0px";
 //      renderContainer.style.width = "0px";
 
-            renderContainer.style.overflow = "auto";
-            renderContainer.style.height = "100%";
-            renderContainer.style.position = "fixed";
-            renderContainer.style.top = "0px";
-            renderContainer.style.left = "0px";
+            renderContainer.className = "rendercontainer";
 
             return renderContainer;
         };

@@ -36,6 +36,22 @@
         /* background-color: lightgray; */
       }
 
+      @media screen {
+          .rendercontainer {
+              overflow: auto;
+              height: 100%;
+              position: fixed;
+              top: 0px;
+              left: 0px;
+          }
+      }
+
+      @media print {
+          .rendercontainer {
+              break-after: page;
+          }
+      }
+
       /*
       #container {
         border: 1px solid black;
