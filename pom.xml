@@ -18,18 +18,24 @@
 
 	<repositories>
 
+        <repository>
+            <id>maven-central</id>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+
 		<repository>
 			<id>dh.nexus.public</id>
 			<name>Cophi Nexus</name>
 			<url>http://dev.digital-humanities.de/nexus/content/groups/public</url>
-			<releases>
+			<!--releases>
 				<enabled>true</enabled>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
-			</snapshots>
+			</snapshots-->
 		</repository>
 		
+<!--
 		<repository>
 			<id>nexus.dariah</id>
 			<name>DARIAH Nexus Public Repository</name>
@@ -41,6 +47,7 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+-->
 
 		<repository>
 			<id>maven-restlet</id>
@@ -342,7 +349,7 @@
 										<!--argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-1.0.0-beta.1/slimerjs</argument-->
                                         <!-- or for puppeteer: -->
                                         <argument>-Dnode.binary=${project.basedir}/node/node</argument>
-										<argument>-Dnode.script=${project.basedir}/rendersvgs-puppeteer.js</argument>
+										<argument>-Dnode.script=${project.basedir}/render-multi-pages.js</argument>
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
 										<argument>-Dfaust.diplo.port=${faust.diplo.port}</argument>

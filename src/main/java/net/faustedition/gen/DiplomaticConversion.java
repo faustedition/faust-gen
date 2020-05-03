@@ -14,10 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -29,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
+import javax.print.Doc;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
@@ -221,6 +219,14 @@ public class DiplomaticConversion {
 		/** The directory containing the page_n.json and job files */
         public Path pagesDir;
 
+        @Override
+        public String toString() {
+            if (sigil != null)
+                return sigil;
+            else
+                return relPath.toString();
+        }
+
         public Document(final Path path) {
 			this.path = path;
 			relPath = root.relativize(path);
@@ -272,6 +278,7 @@ public class DiplomaticConversion {
             public String getOverlayOut() {
                 return overlayOut;
             }
+
         }
         static class DocumentJobDesc {
 
@@ -324,6 +331,37 @@ public class DiplomaticConversion {
             }
         }
 
+       public boolean runJob()  {
+           final ArrayList<String> arguments = getRenderCommandLine();
+           final Path job = writeJob();
+           if (job == null) {
+               logger.info(() -> MessageFormat.format("No transcripts for {0}, skipping", sigil));
+               return true;
+           }
+           arguments.add(job.toString());
+           logger.fine(() -> String.join(" ", arguments));
+           try {
+               final Process renderProcess = new ProcessBuilder(arguments).redirectErrorStream(true).start();
+               final BufferedReader bufferedReader = new BufferedReader(
+                       new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
+               String scriptOutput = bufferedReader.lines().distinct().collect(Collectors.joining("\n"));
+               int exitCode = renderProcess.waitFor();
+               if (exitCode != 0) {
+                   logger.log(Level.SEVERE, MessageFormat.format("Failed to convert SVG for {0}: Exit Code {1}. Script output:\n{2}", this /* document.base.resolve(page)*/, exitCode, scriptOutput));
+               } else if (!debugPhantomJS && scriptOutput.length() > 2) {
+                   logger.log(Level.WARNING, MessageFormat.format("Conversion to SVG for {0} issued messages:\n{1}", this /* document.base.resolve(page) */, scriptOutput));
+               }
+               return exitCode != 0;
+           } catch (IOException | InterruptedException e) {
+               logger.log(Level.SEVERE, "Failed to convert SVGs for " + sigil + ": " + e.getMessage(), e);
+               return false;
+           }
+       }
+
+       public Callable<Optional<Document>> getJobRunner() {
+            return () -> runJob()? Optional.of(this) : Optional.empty();
+       }
+
         public Stream<TranscriptPage> transcripts() {
 			try {
 				final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
@@ -372,15 +410,23 @@ public class DiplomaticConversion {
 						.collect(Collectors.toList());
 				ImmutableList<TranscriptPage> allPages = ImmutableList.copyOf(transcriptPages);
 
-				logger.info("Writing render job descriptions");
-				getDocuments().map(Document::writeJob).collect(Collectors.toList());
+				// logger.info("Writing render job descriptions");
+				// getDocuments().map(Document::writeJob).collect(Collectors.toList());
 				// TODO writeJob(getDocuments());
 				 
 				 
 				int nThreads = Integer.valueOf(System.getProperty("faust.diplo.threads", "0"));
 				if (nThreads <= 0)
 					nThreads = Runtime.getRuntime().availableProcessors();
-				
+
+                final List<Document> failedConversions = runDocumentConversion(getDocuments().collect(Collectors.toList()), nThreads);
+                if (!failedConversions.isEmpty()) {
+                    logger.log(Level.SEVERE, () -> MessageFormat.format("{0} documents failed to convert: {1}",
+                            failedConversions.size(),
+                            String.join(", ", failedConversions.stream().map(Document::toString).collect(Collectors.toList()))));
+                }
+
+				/*
 				int tries = 0;
 				int totalPages;
 				int failedPages;
@@ -399,10 +445,12 @@ public class DiplomaticConversion {
 					}
 					transcriptPages = failedConversions;
 				} while (failedPages > 0 && failedPages < totalPages);
+				 */
 				
-				postprocessPrintSVGs(allPages);
+				/* postprocessPrintSVGs(allPages); */
 				
 
+				/*
 				if (!failedConversions.isEmpty()) {
 					logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed after {1} tries:\n {2}",
 							failedConversions.size(), tries, Joiner.on("\n ").join(failedConversions)));
@@ -414,6 +462,7 @@ public class DiplomaticConversion {
 						logger.log(Level.INFO, MessageFormat.format("Up to {0} failures are tolerated.", allowedFailures));
 					}
 				}
+				 */
 			}
 		} catch (InterruptedException e) {
 			logger.log(Level.INFO, "Interrupted.", e);
@@ -456,6 +505,26 @@ public class DiplomaticConversion {
 		logger.log(Level.INFO, MessageFormat.format("... rendering failed for {0} pages:\n\t{1}", Joiner.on("\n\t").join(failedConversions)));
 		return failedConversions;
 	}
+
+	private static List<Document> runDocumentConversion(List<Document> docs, int nThreads) throws InterruptedException {
+	    logger.log(Level.INFO, MessageFormat.format("Rendering {0} documents in {1} parallel jobs ...", docs.size(), nThreads));
+        final List<Callable<Optional<Document>>> jobs = Lists.transform(docs, doc -> doc.getJobRunner());
+        final ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
+        final List<Future<Optional<Document>>> results = threadPool.invokeAll(Collections.unmodifiableList(jobs));
+        final List<Document> failedConversions = results.stream().
+                map(future -> {
+                    try {
+                        return future.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        logger.log(Level.SEVERE, e, () -> "Failed to get conversion future!?");
+                        return Optional.<Document>empty();
+                    }
+                }).filter(result -> result.isPresent())
+                .map(result -> result.get())
+                .collect(Collectors.toList());
+        threadPool.shutdown();
+        return failedConversions;
+    }
 	
 	private static void postprocessPrintSVGs(final List<TranscriptPage> transcripts) throws InterruptedException {
 		logger.info("Creating SVGs with CSS ...");
