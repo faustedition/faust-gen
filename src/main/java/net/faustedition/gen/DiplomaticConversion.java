@@ -130,7 +130,7 @@ public class DiplomaticConversion {
 
 		public boolean buildSVGs() {
 			logger.fine("Converting " + this);
-			final Path resolvedSvgPath = diplomatic_path.resolve(getPagePath("svg"));
+			final Path resolvedSvgPath = getSVGPath();
 			resolvedSvgPath.getParent().toFile().mkdirs();
             final ArrayList<String> arguments = getRenderCommandLine();
 
@@ -140,7 +140,7 @@ public class DiplomaticConversion {
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
 				arguments.add(imageLinkPath.get().toString());
-				Path resolvedOverlayPath = wwwout_path.resolve("transcript").resolve("overlay").resolve(getPagePath("svg"));
+				Path resolvedOverlayPath = getOverlayPath();
 				resolvedOverlayPath.getParent().toFile().mkdirs();
 				arguments.add(resolvedOverlayPath.toString());
 			} else {
@@ -166,7 +166,15 @@ public class DiplomaticConversion {
 			return true;
 		}
 
-		public Callable<Optional<TranscriptPage>> getSvgBuilder() {
+        private Path getSVGPath() {
+            return diplomatic_path.resolve(getPagePath("svg"));
+        }
+
+        private Path getOverlayPath() {
+            return wwwout_path.resolve("transcript").resolve("overlay").resolve(getPagePath("svg"));
+        }
+
+        public Callable<Optional<TranscriptPage>> getSvgBuilder() {
 			return () -> (this.buildSVGs() ? Optional.of(this) : Optional.empty());
 		}
 		
@@ -210,43 +218,39 @@ public class DiplomaticConversion {
 		public String sigil;
 		/** The machine readable version of the sigil */
 		public String basename;
+		/** The directory containing the page_n.json and job files */
+        public Path pagesDir;
 
-		public Document(final Path path) {
+        public Document(final Path path) {
 			this.path = path;
 			relPath = root.relativize(path);
 			faustURI = URI.create("faust://xml/" + relPath.toString());
 		}
 
-		public Stream<TranscriptPage> transcripts() {
-			try {
-				final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
-				sigil = doc.gotoTag("//idno[@type='faustedition']").getText();
-				basename = sigil.replaceAll("α", "alpha").replaceAll("[^A-Za-z0-9.-]", "_");
-				base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
-				final Builder<TranscriptPage> builder = Stream.builder();
-				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), tag.rawXpathNumber("count(preceding::page)").intValue()+1)),
-						"//docTranscript[@uri]");
-				return builder.build();
-			} catch (final XMLDocumentException e) {
-				logger.log(Level.WARNING, path + ": XML extraction error", e);
-				return Stream.empty();
-			}
-		}
-	}
+        /**
+         * Creates a JSON job description to render this document's pages.
+         *
+         * @return the Path to the job description
+         * @throws IOException if writing fails, which would probably be a bug.
+         */
 
-	public static void writeJob(final Stream<Document> documents) throws IOException {
-	    class TranscriptRepr {
+        static class TranscriptJobDesc {
             private final String json;
             private final int pageNo;
             private final String links;
             private final String out;
+            private final String overlayOut;
 
-            public TranscriptRepr(TranscriptPage page) {
-	            this.json = page.getJsonPath().toString();
-	            this.pageNo = page.pageNo;
-	            this.out = String.valueOf(page.getPagePath("svg"));
-                this.links = page.getImageLinkPath().isPresent()? page.getImageLinkPath().get().toString(): null;
-
+            public TranscriptJobDesc(net.faustedition.gen.DiplomaticConversion.TranscriptPage page) {
+                this.json = page.getJsonPath().toString();
+                this.pageNo = page.pageNo;
+                this.out = page.getSVGPath().toString();
+                if (page.getImageLinkPath().isPresent()) {
+                    this.links = page.getImageLinkPath().get().toString();
+                    this.overlayOut = page.getOverlayPath().toString();
+                } else {
+                    this.links = this.overlayOut = null;
+                }
             }
 
             public String getJson() {
@@ -264,10 +268,16 @@ public class DiplomaticConversion {
             public String getOut() {
                 return out;
             }
+
+            public String getOverlayOut() {
+                return overlayOut;
+            }
         }
-	    class DocumentRepr {
+        static class DocumentJobDesc {
 
             private final String sigil;
+            private final String basename;
+            private final String pdfname;
 
             public Object[] getTranscripts() {
                 return transcripts;
@@ -275,23 +285,64 @@ public class DiplomaticConversion {
 
             private final Object[] transcripts;
 
-            public DocumentRepr(Document doc) {
-	            this.transcripts = doc.transcripts().map(TranscriptRepr::new).toArray();
+            public DocumentJobDesc(net.faustedition.gen.DiplomaticConversion.Document doc) {
+                this.transcripts = doc.transcripts().map(TranscriptJobDesc::new).toArray();
                 this.sigil = doc.sigil;
+                this.basename = doc.basename;
+                this.pdfname = wwwout_path.resolve("transcript").resolve("diplomatic").resolve(doc.basename).resolve(doc.basename + ".pdf").toString();
             }
 
             public String getSigil() {
                 return sigil;
             }
+
+            public String getBasename() {
+                return basename;
+            }
+
+            public String getPdfname() {
+                return pdfname;
+            }
         }
 
-        final Object[] docReprs = documents.map(DocumentRepr::new).toArray();
-        final ObjectMapper objectMapper = new ObjectMapper();
-        logger.info(docReprs[0].toString());
-        objectMapper.writeValue(target.resolve("render-job.json").toFile(), docReprs);
-    }
+        public Path writeJob() {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            DocumentJobDesc job = new DocumentJobDesc(this);
+            if (job.getTranscripts().length > 0) {
+                final Path jobPath = pagesDir.resolve("job.json");
+                try {
+                    objectMapper.writeValue(jobPath.toFile(), job);
+                    return jobPath;
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, e, () -> {
+                        return String.format("Failed to write job file %s: %s", jobPath, e.getMessage());
+                    });
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        }
 
-	public static void main(final String[] args) throws IOException {
+        public Stream<TranscriptPage> transcripts() {
+			try {
+				final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
+				sigil = doc.gotoTag("//idno[@type='faustedition']").getText();
+				basename = sigil.replaceAll("α", "alpha").replaceAll("[^A-Za-z0-9.-]", "_");
+                pagesDir = target.resolve("pages").resolve(basename);
+                base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
+				final Builder<TranscriptPage> builder = Stream.builder();
+				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), tag.rawXpathNumber("count(preceding::page)").intValue()+1)),
+						"//docTranscript[@uri]");
+				return builder.build();
+			} catch (final XMLDocumentException e) {
+				logger.log(Level.WARNING, path + ": XML extraction error", e);
+				return Stream.empty();
+			}
+		}
+	}
+
+    public static void main(final String[] args) throws IOException {
 		Properties properties = System.getProperties();
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
 		onlyWebServer = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.server", "false"));
@@ -321,8 +372,9 @@ public class DiplomaticConversion {
 						.collect(Collectors.toList());
 				ImmutableList<TranscriptPage> allPages = ImmutableList.copyOf(transcriptPages);
 
-				logger.info("Writing render job description");
-				writeJob(getDocuments());
+				logger.info("Writing render job descriptions");
+				getDocuments().map(Document::writeJob).collect(Collectors.toList());
+				// TODO writeJob(getDocuments());
 				 
 				 
 				int nThreads = Integer.valueOf(System.getProperty("faust.diplo.threads", "0"));
