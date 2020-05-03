@@ -4,16 +4,15 @@ const fsP = fs.promises;
 
 
 const backend = process.argv[2],
-    input_base = process.argv[3],
-    output_base = process.argv[4],
-    pages = parseInt(process.argv[5]);
+      jobDesc = process.argv[3]
 
-if (process.argv.length !== 6) {
-    console.log('Usage: node rendersvgs.js backend input output pages');
+if (process.argv.length !== 4) {
+    console.log('Usage: node rendersvgs.js backend job_description', process.argv.length);
 } else {
 
     (async () => {
         try {
+            const job = JSON.parse(await fsP.readFile(jobDesc), {encoding: "utf-8"});
             const browser = await puppeteer.launch({args: ['--no-sandbox'], /* headless: false, slowMo: 100, devtools: true, */ });
             try {
                 const page = await browser.newPage();
@@ -27,13 +26,11 @@ if (process.argv.length !== 6) {
                 await page.waitForFunction("function() {return typeof(transcriptGeneration.createPromise) === 'function'}")
                 await page.$eval("#preload", el => el.parentNode.removeChild(el));
 
-                for (let i = 1; i <= pages; i++) {
-                    console.log("Rendering page ", i)
-                    let input = input_base + i + ".json",
-                        output = output_base + i + ".svg";
+                await page.screenshot();    // make sure fonts are loaded
 
-                    const transcript = await fsP.readFile(input, {encoding: "utf-8"});
-
+                for (const pageDesc of job.transcripts) {
+                    console.log('Rendering', job.sigil, 'page', pageDesc.pageNo)
+                    const transcript = await fsP.readFile(pageDesc.json, {encoding: "utf-8"});
                     const result = await page.evaluate((t) => {
                         return Promise.race([
                             transcriptGeneration.createPromise(t),
@@ -41,12 +38,12 @@ if (process.argv.length !== 6) {
                         ]);
                     }, transcript);
 
-                    await fsP.writeFile(output, result.svg, {encoding: "utf-8"});
+                    await fsP.writeFile(pageDesc.out, result.svg, {encoding: "utf-8"});
                 }
 
-                console.log("Saving PDF ...")
+                console.log("Saving PDF ", job.pdfname, " ...")
                 await page.pdf({
-                    path: output_base + ".pdf",
+                    path: job.pdfname,
                     format: 'A4',
                     margin: ['2cm', '2cm', '2cm', '2cm']
                 });
