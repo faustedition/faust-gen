@@ -33,6 +33,11 @@ var transcriptGeneration = (function () {
         };
     }
 
+    /* Chrome 48 removed this :(  -> Polyfill */
+    SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(elem) {
+        return elem.getScreenCTM().inverse().multiply(this.getScreenCTM());
+    };
+
     var transcriptGeneration = {};
 
     var createRenderContainer = (function () {
@@ -212,7 +217,8 @@ var transcriptGeneration = (function () {
                 if (links) {
                     const overlaySvg = transcriptGeneration.createFacsimileOverlaySvg(diploSvg, links);
                     result.overlay = serialize(overlaySvg);
-                    overlaySvg.parentNode.removeChild(overlaySvg);
+                    const renderContainer = overlaySvg.parentElement;
+                    renderContainer.parentNode.removeChild(renderContainer);
                 }
                 resolve(result);
             });
