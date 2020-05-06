@@ -66,7 +66,7 @@ var transcriptGeneration = (function () {
          */
 
 
-        var createDiplomaticSvg = function (diplomaticTranscriptString, callback) {
+        var createDiplomaticSvg = function (diplomaticTranscriptString, callback, header) {
 
             var iterations = 15;
             var timeout = 5;
@@ -116,7 +116,13 @@ var transcriptGeneration = (function () {
                 } else {
                     containerAdjustDimensions();
                     if (typeof callback !== 'undefined') {
-                        callback(renderContainer.firstChild);
+                        const svg = renderContainer.firstChild;
+                        if (header) {
+                            const headerDiv = document.createElement('div');
+                            renderContainer.insertBefore(headerDiv, svg)
+                            headerDiv.outerHTML = header;
+                        }
+                        callback(svg);
                     }
                 }
             };
@@ -210,7 +216,7 @@ var transcriptGeneration = (function () {
         });
     }
     
-    transcriptGeneration.createPromise = function createPromise(transcript, links) {
+    transcriptGeneration.createPromise = function createPromise(transcript, links, header) {
         return new Promise((resolve, reject) => {
             transcriptGeneration.createDiplomaticSvg(transcript, (diploSvg) => {
                 const result = {svg: serialize(diploSvg), overlay: undefined};
@@ -221,7 +227,7 @@ var transcriptGeneration = (function () {
                     renderContainer.parentNode.removeChild(renderContainer);
                 }
                 resolve(result);
-            });
+            }, header);
         });
     }
 

@@ -33,16 +33,20 @@ if (process.argv.length !== 4) {
                 await page.screenshot();    // make sure fonts are loaded
 
                 for (const pageDesc of job.transcripts) {
+                    const header = `<div class="onlypdf printheader">
+                                        <span class="sigil">${job.sigil}</span>
+                                        <img class="logo" src="img/faustlogo.svg">
+                                        <span content="pageno">${pageDesc.pageNo}</span></div>`;
                     if (debug)
                         console.log('Rendering', job.sigil, 'page', pageDesc.pageNo)
                     const transcript = await fsP.readFile(pageDesc.json, {encoding: "utf-8"}),
                           imageLinks = pageDesc.links? await fsP.readFile(pageDesc.links, {encoding: "utf-8"}) : null;
-                    const result = await page.evaluate((t, i) => {
+                    const result = await page.evaluate((t, i, h) => {
                         return Promise.race([
-                            transcriptGeneration.createPromise(t, i),
+                            transcriptGeneration.createPromise(t, i, h),
                             new Promise((_, reject) => setTimeout(reject, 30000, 'Rendering took more than 30 seconds'))
                         ]);
-                    }, transcript, imageLinks);
+                    }, transcript, imageLinks, header);
 
                     await fsP.mkdir(path.dirname(pageDesc.out), {recursive: true});
                     await fsP.writeFile(pageDesc.out, result.svg, {encoding: "utf-8"});

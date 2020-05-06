@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/css/document-transcript-interaction.css">
     <link rel="stylesheet" href="/css/pure-custom.css">
     <link rel="stylesheet" href="/css/basic_layout.css">
+    <link rel="stylesheet" href="/css/render.css">
 
     <script type="text/javascript" src="/js-gen/lib/Y_extract.js"></script>
     <script type="text/javascript" src="/js-gen/svg-utils.js"></script>
@@ -22,44 +23,6 @@
     <script type="text/javascript" src="/js-gen/transcript-configuration-faust.js"></script>
     <script type="text/javascript" src="/js-gen/transcript-generation.js"></script>
 
-    <style>
-      *, *:before, *:after {
-        -webkit-box-sizing: border-box;
-           -moz-box-sizing: border-box;
-                box-sizing: border-box;
-      }
-
-      html, body {
-        height: 100%;
-        margin: 0px 0px 0px 0px;
-        padding: 5px;
-        /* background-color: lightgray; */
-      }
-
-      @media screen {
-          .rendercontainer {
-              overflow: auto;
-              height: 100%;
-              position: fixed;
-              top: 0px;
-              left: 0px;
-          }
-      }
-
-      @media print {
-          .rendercontainer {
-              break-after: page;
-          }
-      }
-
-      /*
-      #container {
-        border: 1px solid black;
-        background-color: white;
-      }
-      */
-
-    </style>
   </head>
   <body>
     <div id="container">
