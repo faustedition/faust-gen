@@ -199,6 +199,17 @@ var transcriptGeneration = (function () {
         return serializedSvg;
     };
 
+    transcriptGeneration.addAboutPage = function addAboutPage(sigil) {
+        var template = document.getElementById('aboutpage').innerHTML;
+        const options = {sigil: sigil, generated: new Date().toISOString()};
+        for (const option in options) {
+            template = template.replace(RegExp('\{' + option + '\}', 'g'), options[option])
+        }
+        const aboutElement = document.createElement('article');
+        document.body.append(aboutElement);
+        aboutElement.outerHTML = template;
+    }
+
 
     transcriptGeneration.createToPhantom = function createToPhantom(transcript, links) {
         transcriptGeneration.createDiplomaticSvg(transcript, function (diploSvg) {

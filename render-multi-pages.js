@@ -56,6 +56,8 @@ if (process.argv.length !== 4) {
                     }
                 }
 
+                await page.evaluate(s => transcriptGeneration.addAboutPage(s), job.sigil);
+
                 if (!debug) {
                     // console.log("Saving PDF ", job.pdfname, " ...")
                     await page.pdf({
