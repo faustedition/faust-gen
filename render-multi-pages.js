@@ -18,13 +18,14 @@ if (process.argv.length !== 4) {
             const browser = await puppeteer.launch(args);
             try {
                 const page = await browser.newPage();
+                var   logDetail = "";
 
                 page
                     .on('console', message =>
-                        console.log(job.sigil, `${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
-                    .on('pageerror', ({ message }) => console.error(job.sigil, message))
+                        console.log(job.sigil, logDetail, `${message.type().substr(0, 3).toUpperCase()} ${message.text()}`))
+                    .on('pageerror', ({ message }) => console.error(job.sigil, logDetail, message))
                     .on('requestfailed', request =>
-                        console.error(job.sigil, `${request.failure().errorText} ${request.url()}`))
+                        console.error(job.sigil, logDetail, `${request.failure().errorText} ${request.url()}`))
 
                 await page.goto(backend, {waitUntil: "domcontentloaded"});
                 await page.waitForFunction("function() {return typeof(transcriptGeneration.createPromise) === 'function'}")
@@ -33,6 +34,7 @@ if (process.argv.length !== 4) {
                 await page.screenshot();    // make sure fonts are loaded
 
                 for (const pageDesc of job.transcripts) {
+                    logDetail = pageDesc.pageNo;
                     const header = `<div class="onlypdf printheader">
                                         <span class="sigil">${job.sigil}</span>
                                         <img class="logo" src="img/faustlogo.svg">
