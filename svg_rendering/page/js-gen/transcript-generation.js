@@ -198,6 +198,7 @@ var transcriptGeneration = (function () {
             serializedSvg = serializer.serializeToString(node).replace(/&nbsp;/g, '&#160;');
         return serializedSvg;
     };
+    transcriptGeneration.serialize = serialize;
 
     transcriptGeneration.addAboutPage = function addAboutPage(sigil) {
         var template = document.getElementById('aboutpage').innerHTML;

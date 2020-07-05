@@ -59,6 +59,10 @@ if (process.argv.length !== 4) {
                 }
 
                 await page.evaluate(s => transcriptGeneration.addAboutPage(s), job.sigil);
+                const htmlName = job.pdfname.replace(/pdf$/, 'html');
+                const html = await page.evaluate(() => { return transcriptGeneration.serialize(document.getRootNode()); });
+                await fsP.writeFile(htmlName, html, {encoding: "utf-8"});
+
 
                 if (!debug) {
                     // console.log("Saving PDF ", job.pdfname, " ...")

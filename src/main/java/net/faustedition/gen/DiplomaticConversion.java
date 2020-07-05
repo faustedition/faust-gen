@@ -419,7 +419,8 @@ public class DiplomaticConversion {
 				if (nThreads <= 0)
 					nThreads = Runtime.getRuntime().availableProcessors();
 
-                final List<Document> failedConversions = runDocumentConversion(getDocuments().collect(Collectors.toList()), nThreads);
+                final List<Document> failedConversions = runDocumentConversion(getDocuments()
+                        .collect(Collectors.toList()), nThreads);
                 if (!failedConversions.isEmpty()) {
                     logger.log(Level.SEVERE, () -> MessageFormat.format("{0} documents failed to convert: {1}",
                             failedConversions.size(),
