@@ -8,6 +8,9 @@ target
 .ipynb_checkpoints
 .ropeproject
 __pycache__
+node
+node_modules
+
 .gradle
 /build/
 

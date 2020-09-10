@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/css/document-transcript-interaction.css">
     <link rel="stylesheet" href="/css/pure-custom.css">
     <link rel="stylesheet" href="/css/basic_layout.css">
+    <link rel="stylesheet" href="/css/render.css">
 
     <script type="text/javascript" src="/js-gen/lib/Y_extract.js"></script>
     <script type="text/javascript" src="/js-gen/svg-utils.js"></script>
@@ -22,28 +23,6 @@
     <script type="text/javascript" src="/js-gen/transcript-configuration-faust.js"></script>
     <script type="text/javascript" src="/js-gen/transcript-generation.js"></script>
 
-    <style>
-      *, *:before, *:after {
-        -webkit-box-sizing: border-box;
-           -moz-box-sizing: border-box;
-                box-sizing: border-box;
-      }
-
-      html, body {
-        height: 100%;
-        margin: 0px 0px 0px 0px;
-        padding: 5px;
-        /* background-color: lightgray; */
-      }
-
-      /*
-      #container {
-        border: 1px solid black;
-        background-color: white;
-      }
-      */
-
-    </style>
   </head>
   <body>
     <div id="container">
@@ -80,4 +59,91 @@
       <img src="img/usedMarker.svg" alt="Preload usedMarker.svg" />
     </div>
   </body>
+
+  <script type="text/template" id="aboutpage">
+      <section class="aboutpage">
+          <article class="title">
+              <img src="img/faustlogo.svg" alt="Faustedition" style="width: 10em;" />
+              <h2 class="author">Johann Wolfgang Goethe</h2>
+              <h1>Faust</h1>
+              <h3>Historisch-Kritische Edition</h3>
+              <h2>{sigil}</h2>
+          </article>
+
+          <article class="legende">
+              <h1>Legende</h1>
+
+              <table>
+                  <tr><th colspan="2"></th></tr>
+                  <tr class="hand-g" style="font-family: 'Gentium Plus'">
+                      <td>Serifen</td>
+                      <td>Goethe</td>
+                  </tr>
+                  <tr>
+                      <td>Grotesk</td>
+                      <td>Schreiber*in</td>
+                  </tr>
+                  <tr class="hand-xx" style="font-family: 'Ubuntu Mono'">
+                      <td>Schreibmaschine</td>
+                      <td>fremde Hand</td>
+                  </tr>
+
+                  <tr>
+                      <th colspan="2"></th>
+                  </tr>
+                  <tr style="font-style: normal">
+                      <td>recte</td>
+                      <td>deutsche Schrift</td>
+                  </tr>
+                  <tr style="font-style: italic">
+                      <td>kursiv</td>
+                      <td>lateinische Schrift</td>
+                  </tr>
+
+                  <tr>
+                      <th colspan="2"></th>
+                  </tr>
+                  <tr class="material-t" style="color:black">
+                      <td>schwarz</td>
+                      <td>Tinte</td>
+                  </tr>
+                  <tr class="material-tr" style="color:#A02020;">
+                      <td>rot</td>
+                      <td>rote/braune Tinte</td>
+                  </tr>
+                  <tr class="material-bl" style="color:#808080;">
+                      <td>grau</td>
+                      <td>Bleistift</td>
+                  </tr>
+                  <tr class="material-ro" style="color:#A02020;">
+                      <td>rot</td>
+                      <td>Rötel</td>
+                  </tr>
+                  <tr class="material-ko">
+                      <td>schwarz</td>
+                      <td>Kohlestift</td>
+                  </tr>
+                  <tr class="material-blau" style="color: #5050C0">
+                      <td>blau</td>
+                      <td>blauer Bleistift</td>
+                  </tr>
+              </table>
+          </article>
+
+          <article>
+              <h1>Zitierempfehlung</h1>
+              <p>
+                  Johann Wolfgang Goethe: Faust. Historisch-kritische Edition.
+                  Herausgegeben von Anne Bohnenkamp, Silke Henke und Fotis Jannidis
+                  unter Mitarbeit von Gerrit Brüning, Katrin Henzel, Christoph Leijser, Gregor Middell, Dietmar Pravida, Thorsten Vitt und Moritz Wissenbach.
+                  Version alpha. Frankfurt am Main / Weimar / Würzburg 2018 – 2020,
+                  <span>{sigil} – Dokumentarisches Transkript</span>
+                  <!-- , <span>URL: <a href="{url}">{url}</a></span> -->
+              </p>
+
+              <div class="generated">Generiert: {generated}</div>
+          </article>
+      </section>
+    </script>
+
 </html>

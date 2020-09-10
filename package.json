@@ -1,0 +1,21 @@
+{
+  "name": "faust-gen",
+  "version": "1.0.0",
+  "description": "The Faust-Edition web application builds on data that is automatically pre-generated from the original XML files. This project integrates the various generation and upload processes (except for the images, actually).",
+  "main": "rendersvgs-puppeteer.js",
+  "dependencies": {
+    "puppeteer": "^2.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/faustedition/faust-gen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/faustedition/faust-gen/issues"
+  },
+  "homepage": "https://github.com/faustedition/faust-gen#readme"
+}

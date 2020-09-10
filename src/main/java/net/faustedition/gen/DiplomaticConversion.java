@@ -14,10 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -29,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
+import javax.print.Doc;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.stream.StreamSource;
@@ -48,6 +46,7 @@ import net.sf.saxon.s9api.SaxonApiException;
 import net.sf.saxon.s9api.XdmAtomicValue;
 import net.sf.saxon.s9api.XsltExecutable;
 import net.sf.saxon.s9api.XsltTransformer;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class DiplomaticConversion {
 
@@ -71,8 +70,6 @@ public class DiplomaticConversion {
 	private static boolean debugPhantomJS;
 
 	private static boolean onlyWebServer;
-
-	private static ImmutableList<String> baseCmdLine;
 
 	public static class TranscriptPage {
 		public final Document document;
@@ -131,23 +128,17 @@ public class DiplomaticConversion {
 
 		public boolean buildSVGs() {
 			logger.fine("Converting " + this);
-			final Path resolvedSvgPath = diplomatic_path.resolve(getPagePath("svg"));
+			final Path resolvedSvgPath = getSVGPath();
 			resolvedSvgPath.getParent().toFile().mkdirs();
-			final ArrayList<String> arguments = Lists.newArrayList(
-					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
-					"rendersvgs.js",
-					serverURL, 
-					getJsonPath().toString(),
-					resolvedSvgPath.toString());
-			if (debugPhantomJS)
-				arguments.add(1, "--debug=errors");
-			if (arguments.get(0).contains("slimerjs"))
-				arguments.add(1, "--headless");
-			
+            final ArrayList<String> arguments = getRenderCommandLine();
+
+            arguments.add(getJsonPath().toString());
+			arguments.add(resolvedSvgPath.toString());
+
 			final Optional<Path> imageLinkPath = getImageLinkPath();
 			if (imageLinkPath.isPresent()) {
 				arguments.add(imageLinkPath.get().toString());
-				Path resolvedOverlayPath = wwwout_path.resolve("transcript").resolve("overlay").resolve(getPagePath("svg"));
+				Path resolvedOverlayPath = getOverlayPath();
 				resolvedOverlayPath.getParent().toFile().mkdirs();
 				arguments.add(resolvedOverlayPath.toString());
 			} else {
@@ -173,7 +164,15 @@ public class DiplomaticConversion {
 			return true;
 		}
 
-		public Callable<Optional<TranscriptPage>> getSvgBuilder() {
+        private Path getSVGPath() {
+            return diplomatic_path.resolve(getPagePath("svg"));
+        }
+
+        private Path getOverlayPath() {
+            return wwwout_path.resolve("transcript").resolve("overlay").resolve(getPagePath("svg"));
+        }
+
+        public Callable<Optional<TranscriptPage>> getSvgBuilder() {
 			return () -> (this.buildSVGs() ? Optional.of(this) : Optional.empty());
 		}
 		
@@ -183,7 +182,28 @@ public class DiplomaticConversion {
 		
 	}
 
-	public static class Document {
+    private static ArrayList<String> getRenderCommandLine() {
+        String renderScript = System.getProperty("node.script");
+        final String renderBinary;
+        if (renderScript == null) {
+            renderBinary = System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs");
+            renderScript = "rendersvgs.js";
+        } else {
+            renderBinary = System.getProperty("node.binary", "node");
+        }
+
+        final ArrayList<String> arguments = Lists.newArrayList(
+                renderBinary,
+                renderScript,
+                serverURL);
+        if (debugPhantomJS)
+            arguments.add(1, "--debug=errors");
+        if (arguments.get(0).contains("slimerjs"))
+            arguments.add(1, "--headless");
+        return arguments;
+    }
+
+    public static class Document {
 
 		private final Path path;
 		/** The base faust:// uri for the transcripts of this document */
@@ -196,19 +216,159 @@ public class DiplomaticConversion {
 		public String sigil;
 		/** The machine readable version of the sigil */
 		public String basename;
+		/** The directory containing the page_n.json and job files */
+        public Path pagesDir;
 
-		public Document(final Path path) {
+        @Override
+        public String toString() {
+            if (sigil != null)
+                return sigil;
+            else
+                return relPath.toString();
+        }
+
+        public Document(final Path path) {
 			this.path = path;
 			relPath = root.relativize(path);
 			faustURI = URI.create("faust://xml/" + relPath.toString());
 		}
 
-		public Stream<TranscriptPage> transcripts() {
+        /**
+         * Creates a JSON job description to render this document's pages.
+         *
+         * @return the Path to the job description
+         * @throws IOException if writing fails, which would probably be a bug.
+         */
+
+        static class TranscriptJobDesc {
+            private final String json;
+            private final int pageNo;
+            private final String links;
+            private final String out;
+            private final String overlayOut;
+
+            public TranscriptJobDesc(net.faustedition.gen.DiplomaticConversion.TranscriptPage page) {
+                this.json = page.getJsonPath().toString();
+                this.pageNo = page.pageNo;
+                this.out = page.getSVGPath().toString();
+                if (page.getImageLinkPath().isPresent()) {
+                    this.links = page.getImageLinkPath().get().toString();
+                    this.overlayOut = page.getOverlayPath().toString();
+                } else {
+                    this.links = this.overlayOut = null;
+                }
+            }
+
+            public String getJson() {
+                return json;
+            }
+
+            public int getPageNo() {
+                return pageNo;
+            }
+
+            public String getLinks() {
+                return links;
+            }
+
+            public String getOut() {
+                return out;
+            }
+
+            public String getOverlayOut() {
+                return overlayOut;
+            }
+
+        }
+        static class DocumentJobDesc {
+
+            private final String sigil;
+            private final String basename;
+            private final String pdfname;
+
+            public Object[] getTranscripts() {
+                return transcripts;
+            }
+
+            private final Object[] transcripts;
+
+            public DocumentJobDesc(net.faustedition.gen.DiplomaticConversion.Document doc) {
+                this.transcripts = doc.transcripts().map(TranscriptJobDesc::new).toArray();
+                this.sigil = doc.sigil;
+                this.basename = doc.basename;
+                this.pdfname = wwwout_path.resolve("transcript").resolve("diplomatic").resolve(doc.basename).resolve(doc.basename + ".pdf").toString();
+            }
+
+            public String getSigil() {
+                return sigil;
+            }
+
+            public String getBasename() {
+                return basename;
+            }
+
+            public String getPdfname() {
+                return pdfname;
+            }
+        }
+
+        public Path writeJob() {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            DocumentJobDesc job = new DocumentJobDesc(this);
+            if (job.getTranscripts().length > 0) {
+                final Path jobPath = pagesDir.resolve("job.json");
+                try {
+                    objectMapper.writeValue(jobPath.toFile(), job);
+                    return jobPath;
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, e, () -> {
+                        return String.format("Failed to write job file %s: %s", jobPath, e.getMessage());
+                    });
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        }
+
+       public boolean runJob()  {
+           final ArrayList<String> arguments = getRenderCommandLine();
+           final Path job = writeJob();
+           if (job == null) {
+               logger.info(() -> MessageFormat.format("No transcripts for {0}, skipping", sigil));
+               return true;
+           }
+           arguments.add(job.toString());
+           logger.fine(() -> String.join(" ", arguments));
+           try {
+               final Process renderProcess = new ProcessBuilder(arguments).redirectErrorStream(true).start();
+               final BufferedReader bufferedReader = new BufferedReader(
+                       new InputStreamReader(new BufferedInputStream(renderProcess.getInputStream())));
+               String scriptOutput = bufferedReader.lines().distinct().collect(Collectors.joining("\n"));
+               int exitCode = renderProcess.waitFor();
+               if (exitCode != 0) {
+                   logger.log(Level.SEVERE, MessageFormat.format("Failed to convert SVG for {0}: Exit Code {1}. Script output:\n{2}", this /* document.base.resolve(page)*/, exitCode, scriptOutput));
+               } else if (!debugPhantomJS && scriptOutput.length() > 2) {
+                   logger.log(Level.WARNING, MessageFormat.format("Conversion to SVG for {0} issued messages:\n{1}", this /* document.base.resolve(page) */, scriptOutput));
+               }
+               return exitCode != 0;
+           } catch (IOException | InterruptedException e) {
+               logger.log(Level.SEVERE, "Failed to convert SVGs for " + sigil + ": " + e.getMessage(), e);
+               return false;
+           }
+       }
+
+       public Callable<Optional<Document>> getJobRunner() {
+            return () -> runJob()? Optional.of(this) : Optional.empty();
+       }
+
+        public Stream<TranscriptPage> transcripts() {
 			try {
 				final XMLTag doc = XMLDoc.from(path.toFile()).deletePrefixes();
 				sigil = doc.gotoTag("//idno[@type='faustedition']").getText();
 				basename = sigil.replaceAll("α", "alpha").replaceAll("[^A-Za-z0-9.-]", "_");
-				base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
+                pagesDir = target.resolve("pages").resolve(basename);
+                base = URI.create(doc.gotoTag("//*[@base]").getAttribute("base"));
 				final Builder<TranscriptPage> builder = Stream.builder();
 				doc.forEach(tag -> builder.accept(new TranscriptPage(this, tag.getAttribute("uri"), tag.rawXpathNumber("count(preceding::page)").intValue()+1)),
 						"//docTranscript[@uri]");
@@ -220,7 +380,7 @@ public class DiplomaticConversion {
 		}
 	}
 
-	public static void main(final String[] args) throws IOException {
+    public static void main(final String[] args) throws IOException {
 		Properties properties = System.getProperties();
 		System.setProperty("java.util.logging.SimpleFormatter.format", "%4$s: %5$s%n");
 		onlyWebServer = Boolean.valueOf((String) properties.getOrDefault("faust.diplo.server", "false"));
@@ -231,13 +391,8 @@ public class DiplomaticConversion {
 		try {
 			serverURL = new URL("http", "localhost", webServer.getListeningPort(), "/transcript-generation.html").toString();
 			logger.info(MessageFormat.format("Web server runs on {0}", serverURL));
-			baseCmdLine = ImmutableList.of(
-					System.getProperty("phantomjs.binary", "/usr/local/bin/phantomjs"), 
-					"--profile", profile.toString(),
-					debugPhantomJS? "--debug=true" : "",
-					"rendersvgs.js",
-					serverURL);
-			logger.info(() -> "PhantomJS command line: " + String.join(" ", baseCmdLine) + " <input> <output> [<links> <linkoutput>]");
+			List<String> baseCmdLine = getRenderCommandLine();
+			logger.info(() -> "Render script command line: " + String.join(" ", baseCmdLine) + " <input> <output> [<links> <linkoutput>]");
 			
 		
 			if (onlyWebServer) {
@@ -254,13 +409,25 @@ public class DiplomaticConversion {
 						.map(page -> page.writeTranscriptJson())
 						.collect(Collectors.toList());
 				ImmutableList<TranscriptPage> allPages = ImmutableList.copyOf(transcriptPages);
-				
+
+				// logger.info("Writing render job descriptions");
+				// getDocuments().map(Document::writeJob).collect(Collectors.toList());
+				// TODO writeJob(getDocuments());
 				 
 				 
 				int nThreads = Integer.valueOf(System.getProperty("faust.diplo.threads", "0"));
 				if (nThreads <= 0)
 					nThreads = Runtime.getRuntime().availableProcessors();
-				
+
+                final List<Document> failedConversions = runDocumentConversion(getDocuments()
+                        .collect(Collectors.toList()), nThreads);
+                if (!failedConversions.isEmpty()) {
+                    logger.log(Level.SEVERE, () -> MessageFormat.format("{0} documents failed to convert: {1}",
+                            failedConversions.size(),
+                            String.join(", ", failedConversions.stream().map(Document::toString).collect(Collectors.toList()))));
+                }
+
+				/*
 				int tries = 0;
 				int totalPages;
 				int failedPages;
@@ -279,10 +446,12 @@ public class DiplomaticConversion {
 					}
 					transcriptPages = failedConversions;
 				} while (failedPages > 0 && failedPages < totalPages);
+				 */
 				
-				postprocessPrintSVGs(allPages);
+				/* postprocessPrintSVGs(allPages); */
 				
 
+				/*
 				if (!failedConversions.isEmpty()) {
 					logger.log(Level.SEVERE, MessageFormat.format("Conversion of the following {0} pages failed after {1} tries:\n {2}",
 							failedConversions.size(), tries, Joiner.on("\n ").join(failedConversions)));
@@ -294,6 +463,7 @@ public class DiplomaticConversion {
 						logger.log(Level.INFO, MessageFormat.format("Up to {0} failures are tolerated.", allowedFailures));
 					}
 				}
+				 */
 			}
 		} catch (InterruptedException e) {
 			logger.log(Level.INFO, "Interrupted.", e);
@@ -336,6 +506,26 @@ public class DiplomaticConversion {
 		logger.log(Level.INFO, MessageFormat.format("... rendering failed for {0} pages:\n\t{1}", Joiner.on("\n\t").join(failedConversions)));
 		return failedConversions;
 	}
+
+	private static List<Document> runDocumentConversion(List<Document> docs, int nThreads) throws InterruptedException {
+	    logger.log(Level.INFO, MessageFormat.format("Rendering {0} documents in {1} parallel jobs ...", docs.size(), nThreads));
+        final List<Callable<Optional<Document>>> jobs = Lists.transform(docs, doc -> doc.getJobRunner());
+        final ExecutorService threadPool = Executors.newFixedThreadPool(nThreads);
+        final List<Future<Optional<Document>>> results = threadPool.invokeAll(Collections.unmodifiableList(jobs));
+        final List<Document> failedConversions = results.stream().
+                map(future -> {
+                    try {
+                        return future.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        logger.log(Level.SEVERE, e, () -> "Failed to get conversion future!?");
+                        return Optional.<Document>empty();
+                    }
+                }).filter(result -> result.isPresent())
+                .map(result -> result.get())
+                .collect(Collectors.toList());
+        threadPool.shutdown();
+        return failedConversions;
+    }
 	
 	private static void postprocessPrintSVGs(final List<TranscriptPage> transcripts) throws InterruptedException {
 		logger.info("Creating SVGs with CSS ...");

@@ -18,18 +18,24 @@
 
 	<repositories>
 
+        <repository>
+            <id>maven-central</id>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+
 		<repository>
 			<id>dh.nexus.public</id>
 			<name>Cophi Nexus</name>
 			<url>http://dev.digital-humanities.de/nexus/content/groups/public</url>
-			<releases>
+			<!--releases>
 				<enabled>true</enabled>
 			</releases>
 			<snapshots>
 				<enabled>true</enabled>
-			</snapshots>
+			</snapshots-->
 		</repository>
 		
+<!--
 		<repository>
 			<id>nexus.dariah</id>
 			<name>DARIAH Nexus Public Repository</name>
@@ -41,6 +47,7 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+-->
 
 		<repository>
 			<id>maven-restlet</id>
@@ -226,7 +233,7 @@
 			</activation>
 			<build>
 				<plugins>
-				
+
 				<!-- PhantomJS or SlimerJS? 
 				
 				 Uncomment either of the plugins below: 
@@ -240,6 +247,24 @@
 				 see the comment there.
 				
 				 -->
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>1.9.1</version>
+                        <configuration>
+                            <nodeVersion>v12.16.1</nodeVersion>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>install node and npm</id>
+                                <goals><goal>install-node-and-npm</goal></goals>
+                            </execution>
+                            <execution>
+                                <id>npm install</id>
+                                <goals><goal>npm</goal></goals>
+                            </execution>
+                        </executions>
+                    </plugin>
 				 
 <!--					<plugin>
 						<groupId>com.github.klieber</groupId>
@@ -255,7 +280,7 @@
 						</executions>
 					</plugin>
 -->							
-				 
+				<!--
 					
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -286,6 +311,7 @@
 							</execution>
 						</executions>
 					</plugin>
+					-->
 				</plugins>
 			</build>
 		</profile>
@@ -320,7 +346,10 @@
 										<!-- For PhantomJS: -->										
 										<!-- <argument>-Dphantomjs.binary=${phantomjs.binary}</argument> -->
 										<!-- For SlimerJS instead: -->
-										<argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-1.0.0-beta.1/slimerjs</argument>
+										<!--argument>-Dphantomjs.binary=${project.build.directory}/dependency/slimerjs-1.0.0-beta.1/slimerjs</argument-->
+                                        <!-- or for puppeteer: -->
+                                        <argument>-Dnode.binary=${project.basedir}/node/node</argument>
+										<argument>-Dnode.script=${project.basedir}/render-multi-pages.js</argument>
 										<argument>-Dfaust.diplo.allowedFailures=${faust.diplo.allowedFailures}</argument>
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
 										<argument>-Dfaust.diplo.port=${faust.diplo.port}</argument>

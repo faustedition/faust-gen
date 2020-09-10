@@ -33,6 +33,11 @@ var transcriptGeneration = (function () {
         };
     }
 
+    /* Chrome 48 removed this :(  -> Polyfill */
+    SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(elem) {
+        return elem.getScreenCTM().inverse().multiply(this.getScreenCTM());
+    };
+
     var transcriptGeneration = {};
 
     var createRenderContainer = (function () {
@@ -43,11 +48,7 @@ var transcriptGeneration = (function () {
 //      renderContainer.style.height = "0px";
 //      renderContainer.style.width = "0px";
 
-            renderContainer.style.overflow = "auto";
-            renderContainer.style.height = "100%";
-            renderContainer.style.position = "fixed";
-            renderContainer.style.top = "0px";
-            renderContainer.style.left = "0px";
+            renderContainer.className = "rendercontainer";
 
             return renderContainer;
         };
@@ -65,7 +66,7 @@ var transcriptGeneration = (function () {
          */
 
 
-        var createDiplomaticSvg = function (diplomaticTranscriptString, callback) {
+        var createDiplomaticSvg = function (diplomaticTranscriptString, callback, header) {
 
             var iterations = 15;
             var timeout = 5;
@@ -115,7 +116,13 @@ var transcriptGeneration = (function () {
                 } else {
                     containerAdjustDimensions();
                     if (typeof callback !== 'undefined') {
-                        callback(renderContainer.firstChild);
+                        const svg = renderContainer.firstChild;
+                        if (header) {
+                            const headerDiv = document.createElement('div');
+                            renderContainer.insertBefore(headerDiv, svg)
+                            headerDiv.outerHTML = header;
+                        }
+                        callback(svg);
                     }
                 }
             };
@@ -191,6 +198,18 @@ var transcriptGeneration = (function () {
             serializedSvg = serializer.serializeToString(node).replace(/&nbsp;/g, '&#160;');
         return serializedSvg;
     };
+    transcriptGeneration.serialize = serialize;
+
+    transcriptGeneration.addAboutPage = function addAboutPage(sigil) {
+        var template = document.getElementById('aboutpage').innerHTML;
+        const options = {sigil: sigil, generated: new Date().toISOString()};
+        for (const option in options) {
+            template = template.replace(RegExp('\{' + option + '\}', 'g'), options[option])
+        }
+        const aboutElement = document.createElement('article');
+        document.body.append(aboutElement);
+        aboutElement.outerHTML = template;
+    }
 
 
     transcriptGeneration.createToPhantom = function createToPhantom(transcript, links) {
@@ -206,6 +225,21 @@ var transcriptGeneration = (function () {
             } catch (e) {
                 console.log("Phantom callback failed: ", e);
             }
+        });
+    }
+    
+    transcriptGeneration.createPromise = function createPromise(transcript, links, header) {
+        return new Promise((resolve, reject) => {
+            transcriptGeneration.createDiplomaticSvg(transcript, (diploSvg) => {
+                const result = {svg: serialize(diploSvg), overlay: undefined};
+                if (links) {
+                    const overlaySvg = transcriptGeneration.createFacsimileOverlaySvg(diploSvg, links);
+                    result.overlay = serialize(overlaySvg);
+                    const renderContainer = overlaySvg.parentElement;
+                    renderContainer.parentNode.removeChild(renderContainer);
+                }
+                resolve(result);
+            }, header);
         });
     }
 
