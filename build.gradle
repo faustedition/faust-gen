@@ -4,6 +4,7 @@ import org.apache.tools.ant.filters.*
 plugins {
     id 'base'
     id 'java-library'
+    id "com.github.node-gradle.node" version "3.0.0-rc2"
 }
 
 
@@ -11,6 +12,12 @@ plugins {
 ext.architecture = "linux-x86_64"   // TODO make adjustable
 ext.toolDir = "$buildDir/tools"
 ext.xmlDir = file('data/xml', PathValidation.DIRECTORY)
+
+node {
+    download = true
+    workDir = file("$toolDir/node")
+}
+
 
 if (!project.hasProperty('dataDir')) {
 	def dataDirCandidate = rootProject.file('data/xml')
@@ -61,6 +68,7 @@ configurations {
     exist
 }
 
+
 dependencies {
     compile group: 'net.sf.saxon', name: 'Saxon-HE', version: '10.2'
     implementation 'org.nanohttpd:nanohttpd-webserver:2.2.0'
@@ -101,7 +109,8 @@ task copySource(type: CopyWithSymlink) {
 
 task generateSVGs(type: JavaExec) {
     description "Generates SVGs of diplomatic transcripts and overlays"
-    dependsOn installTools
+    // dependsOn installTools
+    dependsOn npmInstall
     dependsOn classes
     dependsOn copyWeb // there are symlinks from svg_rendering/page to build/www. Probably not the best solution.
 
@@ -112,11 +121,16 @@ task generateSVGs(type: JavaExec) {
     environment 'LC_ALL', 'en_US.UTF-8'
     environment 'SLIMERJSLAUNCHER', "$toolDir/firefox/firefox"
 
+    def setupTask = tasks.getByName('nodeSetup')
+    def nodeDir = setupTask.nodeDir.get().file('bin/node').toString()
+
     systemProperties([
-            'phantomjs.binary': "$toolDir/slimerjs-1.0.0/slimerjs" ,
+            'node.binary'       : "$nodeDir",
+            'node.script'       : "${rootDir}/render-multi-pages.js",
+            // 'phantomjs.binary': "$toolDir/slimerjs-1.0.0/slimerjs" ,
             'faust.diplo.target': buildDir
-        ])
-    systemProperties(project.properties.findAll {key, value -> key.matches('^faust\\.diplo\\..*')})
+    ])
+    systemProperties(project.properties.findAll { key, value -> key.matches('^faust\\.diplo\\..*') })
 
     classpath sourceSets.main.runtimeClasspath
     main 'net.faustedition.gen.DiplomaticConversion'
