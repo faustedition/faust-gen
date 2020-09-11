@@ -96,8 +96,14 @@ task installTools(type: Copy) {
     outputs.dir(toolDir)
 }
 
+task prepareWeb(type: NpmTask) {
+    workingDir = rootProject.file('src/main/web')
+    npmCommand = ['install']
+}
+
 task copyWeb(type: CopyWithSymlink) {
     description "Copy the web page sources"
+    dependsOn prepareWeb
     from fileTree("src/main/web")
     into "$buildDir/www"
 }
