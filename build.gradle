@@ -55,9 +55,9 @@ repositories {
         metadataSources { artifact() }
         content { includeGroup "slimerjs" }
     }
-
+    maven { url = 'https://repo.osgeo.org/repository/release/' } // jai_core, cf. https://stackoverflow.com/questions/26993105
     mavenCentral()
-//    maven { url = 'http://dev.digital-humanities.de/nexus/content/groups/public' }
+    maven { url = 'http://dev.digital-humanities.de/nexus/content/groups/public' }
     maven { url = 'https://dev.dariah.eu/nexus/content/groups/public' }
     maven { url = 'https://maven.restlet.com' }
     maven { url = 'https://raw.github.com/eXist-db/mvn-repo/master/' } // for < 5.0.0
