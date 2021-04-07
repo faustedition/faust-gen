@@ -13,6 +13,7 @@
 		<faust.diplo.server>false</faust.diplo.server> <!-- Run only the web server, don't actually convert -->
 		<faust.diplo.port>0</faust.diplo.port> <!-- Specify port for server, default to auto -->
 		<faust.diplo.debug>false</faust.diplo.debug>   <!-- Debug phantomjs, produces massive output -->
+                <faust.diplo.target>${project.build.directory}</faust.diplo.target>
 		<existAppName>faust-dev</existAppName>
 	</properties>
 
@@ -126,6 +127,8 @@
 	
 	
 	<build>
+                <directory>${project.basedir}/build</directory>
+
 		<defaultGoal>package</defaultGoal>
 
 		<extensions>
@@ -354,6 +357,7 @@
 										<argument>-Dfaust.diplo.server=${faust.diplo.server}</argument>
 										<argument>-Dfaust.diplo.port=${faust.diplo.port}</argument>
 										<argument>-Dfaust.diplo.debug=${faust.diplo.debug}</argument>
+										<argument>-Dfaust.diplo.target=${faust.diplo.target}</argument>
 										<argument>net.faustedition.gen.DiplomaticConversion</argument> 			
 									</arguments>
 								</configuration>
