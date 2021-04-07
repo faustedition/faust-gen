@@ -215,7 +215,7 @@
 						<goals><goal>run</goal></goals>
 						<configuration>
 							<target>
-								<move file="${project.build.directory}/${existAppName}.zip" 
+								<move file="${project.build.directory}/${existAppName}.zip"
 									tofile="${project.build.directory}/${existAppName}.xar"/>
 							</target>
 						</configuration>
@@ -491,6 +491,12 @@
 						<filtering>true</filtering>
 						<targetPath>${project.build.directory}/xproc</targetPath>
 					</resource>
+					<resource>
+						<directory>src/main/xproc-config</directory>
+						<includes><include>paths.xml</include></includes>
+						<filtering>true</filtering>
+						<targetPath>${project.build.directory}</targetPath>
+					</resource>
 				</resources>
 				
 				<plugins>
@@ -517,7 +523,7 @@
 										<artifactId>xmlcalabash</artifactId>
 									</executableDependency-->	
 									<mainClass>com.xmlcalabash.drivers.Main</mainClass>
-									<commandlineArgs>${project.build.directory}/xproc/generate-all.xpl</commandlineArgs>
+									<commandlineArgs>${project.build.directory}/xproc/generate-all.xpl paths=${project.build.directory}/xproc/paths.xml</commandlineArgs>
 									<systemProperties>
 										<systemProperty>
 											<key>com.xmlcalabash.debug</key>

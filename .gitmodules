@@ -10,3 +10,6 @@
 	path = src/main/web
 	url = git://github.com/faustedition/faust-web
 	branch = master
+[submodule "macrogen"]
+	path = macrogen
+	url = git://github.com/faustedition/faust-macrogen.git

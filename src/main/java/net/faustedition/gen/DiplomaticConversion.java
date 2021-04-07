@@ -59,7 +59,7 @@ public class DiplomaticConversion {
 	private static Logger logger = Logger.getLogger(DiplomaticConversion.class.getName());
 
 	public static Path root = Paths.get(System.getProperty("faust.diplo.root", "data/xml/"));
-	public static Path target = Paths.get("target");
+	public static Path target = Paths.get(System.getProperty("faust.diplo.target", "target"));
 
 	private static final Path prepared_svg = target.resolve(System.getProperty("faust.diplo.prepared-svg", "prepared-svg"));
 	public static Path profile = target.resolve("profile");
