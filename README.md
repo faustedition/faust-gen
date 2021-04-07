@@ -2,6 +2,26 @@
 
 The Faust-Edition web application builds on data that is automatically pre-generated from the original XML files. This project integrates the various generation and upload processes (except for the images, actually).
 
+## Note: Maven → Gradle transition
+
+The project is currently switching its build system from Maven to Gradle. Currently, everything except for the final deploy-via-rsync phase works using Gradle, and building by Gradle is the recommended way:
+
+```bash
+git clone --recursive https://github.com/faustedition/faust-gen
+cd faust-gen
+./gradlew build
+```
+
+This will clone this repository and all of its subrepositories, download (almost¹) everything that is needed to build and runs the build. As a result, you can find:
+
+* the complete site except for the facsimiles and the search app in `build/www`
+* the search app ready to be deployed into eXist in `build/faust-*.xar`
+
+and a lot of auxilliary and intermediate files in `build`.
+
+For the build to run, you need to have _Java_ and _GraphViz_ installed locally. 
+
+
 ## Basic Usage
 
 Clone the project and all submodules and run `mvn clean package` (or just `mvn`)
