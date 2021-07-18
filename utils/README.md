@@ -16,3 +16,7 @@ Currently requires pandas and python3. Run with `--help` for help.
 Hack to add the gsa 'Idents' to the metadata.
 
 Cf. faustedition/faust-gen-html#36.
+
+## detect_pages.py
+
+Tries to find the bounding box of the page in the facsimile images and writes them to a json file. Requires scikit-image, use `--help`.
