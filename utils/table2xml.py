@@ -2,13 +2,15 @@
 
 import argparse
 from email.policy import default
+from math import remainder
 import re
 from ast import arg
 from dataclasses import dataclass
 from io import StringIO
 from os import fspath
 from pathlib import Path
-from typing import Iterable, Optional
+import sys
+from typing import Iterable, List, Optional
 
 import pandas as pd
 from lxml import etree, objectify
@@ -59,6 +61,7 @@ default:
 columns: []
 """
 
+yaml = YAML()
 
 def getargparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=DOC)
@@ -81,6 +84,7 @@ def getargparser() -> argparse.ArgumentParser:
         type=argparse.FileType("wb"),
         help="Convert to XML and write file",
     )
+    p.add_argument('--debug-columns', action='store_true', help="Dump the final columns config")
     return p
 
 
@@ -103,7 +107,6 @@ def without_keys(dictionary: dict, keys: Iterable) -> dict:
 
 class Converter:
     def __init__(self) -> None:
-        yaml = YAML()
         self.config = yaml.load(StringIO(DEFAULT_CONFIG))
         self._columns = None
 
@@ -114,15 +117,36 @@ class Converter:
         self._columns = None
 
     def save_config(self, config_file):
-        yaml = YAML()
         with config_file:
             yaml.dump(self.config, config_file)
 
-    def add_columns(self, columns: Iterable):
-        """Add column specs from the given list to the spec"""
-        for header in map(str, columns):
-            if header not in self.columns:
-                self.config["columns"].append({"header": header})
+    def fit_columns(self, headers: Iterable):
+        """
+        Adjusts the column config to match the table headers.
+    
+        Afterwards, the result will contain an entry for each header, in the
+        order from the headers argument. Existing configuration will be kept
+        intact (but maybe moved around.) Existing configuration for columns not
+        in the given headers will be moved to the end and commented when the
+        config is saved.        
+        """
+        columns: list = self.config['columns']
+        existing_config = {c['header']: c for c in columns}
+        columns.clear()
+        for header in map(str, headers):
+            if header in existing_config:
+                columns.append(existing_config.pop(header))
+            else:
+                columns.append({"header": header})
+
+        if existing_config: # columns from old config remaining
+            from ruamel.yaml.comments import CommentedMap
+            remainder = list(existing_config.values())
+            for unused_config in remainder:
+                if not isinstance(unused_config, CommentedMap):
+                    unused_config = CommentedMap(unused_config)
+                unused_config.yaml_add_eol_comment('missing in the reference table', key='header')
+                columns.append(unused_config)
         self._columns = None
 
     @property
@@ -163,7 +187,7 @@ class Converter:
     def table2xml(self, table: pd.DataFrame):
         if self.config.get("transpose", False):
             table = table.T
-        self.add_columns(table.columns)  # just in case something is missing
+        self.fit_columns(table.columns)  # just in case something is missing
         records = table.to_dict(orient="records")
 
         if self.config["namespace"]:
@@ -206,15 +230,16 @@ def _main():
         converter.load_config(options.config)
     table = read_table(options.table)
     if converter.config.get("transpose"):
-        converter.add_columns(table.index)
+        converter.fit_columns(table.index)
     else:
-        converter.add_columns(table.columns)
+        converter.fit_columns(table.columns)
     if options.write_config:
         converter.save_config(options.write_config)
+    if options.debug_columns:
+        yaml.dump(list(converter.columns.values()), stream=sys.stdout)
     if options.output:
         et = converter.table2xml(table).getroottree()
         et.write(options.output, encoding="utf-8", pretty_print=True)
-
 
 if __name__ == "__main__":
     _main()
