@@ -1,15 +1,15 @@
 [submodule "data"]
 	path = data
-	url = git://github.com/faustedition/faust-xml.git
+	url = https://github.com/faustedition/faust-xml.git
 	branch = master
 [submodule "src/main/xproc"]
 	path = src/main/xproc
-	url = git://github.com/faustedition/faust-gen-html.git
+	url = https://github.com/faustedition/faust-gen-html.git
 	branch = master
 [submodule "src/main/web"]
 	path = src/main/web
-	url = git://github.com/faustedition/faust-web
+	url = https://github.com/faustedition/faust-web
 	branch = master
 [submodule "macrogen"]
 	path = macrogen
-	url = git://github.com/faustedition/faust-macrogen.git
+	url = https://github.com/faustedition/faust-macrogen.git
