@@ -59,15 +59,17 @@ def read_bargraph_info(fn: Path) -> dict[int, dict[str, set[str]]]:
 
 @dataclass
 class Verse:
-    n: str
-    variants: int
-    witnesses: int
-    paralipomena: int
-    paralipomena_uncertain: int
-    speaker: Optional[str]
-    element: str
-    is_text: bool
-    text: str
+    """Represents a single line. Directly maps to the CSV file."""
+    n: str                          # line id (source: @n). 1-12111 for verses, something like before_1178_b for paratext.
+    variants: int                   # number of variants for this line.
+    witnesses: int                  # number of witnesses that have this line.
+    paralipomena: int               # number of witnesses with paralipomena that are related to this line (only for verses!)
+    paralipomena_uncertain: int     # ditto, but uncertain relationship
+    speaker: Optional[str]          # speaker of the line, if inside a speech act (tei:sp/tei:speaker)
+    element: str                    # local name of the TEI element representing the line (e.g., l or stage)
+    is_text: bool                   # True iff it’s main text
+    section: str                    # innermost section number (e.g., 2.3.1 for Faust II, 3rd act, first scene)
+    text: str                       # plain text contents of the line
 
 
 class VerseStats:
@@ -92,7 +94,9 @@ class VerseStats:
                       speaker=speaker,
                       element=el_t.tag.split('}')[-1],
                       text=normalize_space(''.join(el_t.xpath('.//text()[not(ancestor::tei:note)]', namespaces=_ns))),
-                      is_text = n.isnumeric() or n.startswith('ttf_'))
+                      is_text = n.isnumeric() or n.startswith('ttf_'),
+                      section = first(el_t.xpath('ancestor::tei:div[1]/@n', namespaces=_ns))
+                      )
             yield v
 
 
