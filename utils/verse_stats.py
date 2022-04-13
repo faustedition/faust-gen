@@ -69,6 +69,7 @@ class Verse:
     element: str                    # local name of the TEI element representing the line (e.g., l or stage)
     is_text: bool                   # True iff it’s main text
     section: str                    # innermost section number (e.g., 2.3.1 for Faust II, 3rd act, first scene)
+    lg: str                         # if line is inside <lg>, n of the respective lg’s first verse
     text: str                       # plain text contents of the line
 
 
@@ -95,6 +96,7 @@ class VerseStats:
                       element=el_t.tag.split('}')[-1],
                       text=normalize_space(''.join(el_t.xpath('.//text()[not(ancestor::tei:note)]', namespaces=_ns))),
                       is_text = n.isnumeric() or n.startswith('ttf_'),
+                      lg = first(el_t.xpath('ancestor::tei:lg[1]/tei:l[@n][1]/@n', namespaces=_ns)),
                       section = first(el_t.xpath('ancestor::tei:div[1]/@n', namespaces=_ns))
                       )
             yield v
