@@ -123,9 +123,10 @@ class VerseStats:
     def lines(self):
         if not self.loaded:
             self.load()
-        for el_h in self.html.xpath('//*[@data-varcount]', namespaces=_ns):
-            n = el_h.get('data-n')
-            el_t = self.tei.xpath(f'//*[@n="{n}"]', namespaces=_ns)[0]
+        for el_t in self.tei.xpath('//*[@n][not(self::tei:div)]', namespaces=_ns):
+            n = el_t.get('n')
+            n_h = n[:-1] if n[-1] in 'imf' and n[-2] != '_' else n       # antilabial n's are contracted in html
+            el_h = self.html.xpath(f'//*[@data-n="{n_h}"]', namespaces=_ns)[0]
             variants = int(el_h.get('data-variants'))
             witnesses = int(el_h.get('data-varcount'))
             speaker = normalize_space(
