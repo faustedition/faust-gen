@@ -113,6 +113,11 @@ class VerseStats:
             self.tei = etree.parse(fspath(self.edition / self.xml_location))
             with (self.edition / self.bargraph_location).open() as f:
                 self.bargraph = parse_bargraph_info(json.load(f))
+
+        # remove critical apparatus from TEI version
+        for note in self.tei.xpath('//tei:note[@type="textcrit"]', namespaces=_ns):
+            note.getparent().remove(note)
+
         self.loaded = True
 
     def lines(self):
@@ -130,7 +135,7 @@ class VerseStats:
                       paralipomena_uncertain=len(self.bargraph[n]['paralipomena_uncertain']),
                       speaker=speaker,
                       element=el_t.tag.split('}')[-1],
-                      text=normalize_space(''.join(el_t.xpath('.//text()[not(ancestor::tei:note)]', namespaces=_ns))),
+                      text=normalize_space(''.join(el_t.xpath('.//text()', namespaces=_ns))),
                       is_text=n.isnumeric() or n.startswith('ttf_'),
                       lg=first(el_t.xpath('ancestor::tei:lg[1]/tei:l[@n][1]/@n', namespaces=_ns)),
                       section=first(el_t.xpath('ancestor::tei:div[1]/@n', namespaces=_ns))
