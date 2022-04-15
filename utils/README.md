@@ -32,3 +32,11 @@ Run `table2xml.py -o foo.xml foo.xlsx` to convert the table in foo.xlsx to a sta
 3. Run `table2xml.py -c foo-config.yml -o foo.xml foo.xlsx` to create the customized XML file.
 
 You can use `-c` and `-C` at the same time to adjust an existing configuration to new table headers.
+
+## watermark_image_table.py
+
+(Re-)generate the table of watermark images found at `/watermarks`. This matches the images by file name to the witnesses and the watermark labels maintained for metadata display.
+
+## verse_stats.py
+
+Extracts per-verse information like the number of variants and witnesses from the edition to a CSV file for further automatic analysis.
