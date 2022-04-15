@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 
+"""
+Extracts per-verse information from the edition and writes it to a CSV file.
+
+This script creates a CSV file with a row for each 'line' of the edition. A 'line' is, essentially,
+anything that may have an apparatus:  A verse, a part of an antilabial verse, a stage direction,
+a speaker name etc. The CSV file contains the number of variants and witnesses (from the text view),
+the number of relevant paralipomena (from the genetic bargraph) and a few data directly extracted from
+the TEI file. See the source code of the class Verse for details.
+
+"""
+
 
 from __future__ import annotations
 
@@ -20,43 +31,6 @@ from tqdm import tqdm
 
 _ns = {'tei': 'http://www.tei-c.org/ns/1.0',
        'xh': 'http://www.w3.org/1999/html'}
-
-
-def first(it: Iterable, default=None):
-    try:
-        return next(iter(it))
-    except StopIteration:
-        return default
-
-
-def normalize_space(s: str, ignore_missing=True):
-    if ignore_missing and s is None:
-        return None
-    return " ".join(s.split())
-
-
-def parse_bargraph_info(data) -> dict[int, dict[str, set[str]]]:
-    """
-    Reads and reorders the bargraph json.
-
-    Parameters
-    ----------
-    fn: Path to the bargraph json file
-
-    Returns
-    -------
-    Dictionary verse no -> type -> set of sigils
-
-    """
-    verses = defaultdict(lambda: defaultdict(set))
-    for doc in data:
-        sigil = doc['sigil']
-        for interval in doc['intervals']:
-            kind = interval['type']
-            for n in range(interval['start'], interval['end'] + 1):
-                verses[str(n)][kind].add(sigil)
-
-    return verses
 
 
 @dataclass
@@ -129,8 +103,7 @@ class VerseStats:
             el_h = self.html.xpath(f'//*[@data-n="{n_h}"]', namespaces=_ns)[0]
             variants = int(el_h.get('data-variants'))
             witnesses = int(el_h.get('data-varcount'))
-            speaker = normalize_space(
-                    first(el_t.xpath('ancestor::tei:sp//tei:speaker/text()', namespaces=_ns), default=None))
+            speaker = normalize_space(''.join(el_t.xpath('ancestor::tei:sp//tei:speaker//text()', namespaces=_ns)))
             v = Verse(n, variants, witnesses,
                       paralipomena=len(self.bargraph[n]['paralipomena']),
                       paralipomena_uncertain=len(self.bargraph[n]['paralipomena_uncertain']),
@@ -143,6 +116,42 @@ class VerseStats:
                       )
             yield v
 
+
+def first(it: Iterable, default=None):
+    try:
+        return next(iter(it))
+    except StopIteration:
+        return default
+
+
+def normalize_space(s: str, ignore_missing=True):
+    if ignore_missing and s is None:
+        return None
+    return " ".join(s.split())
+
+
+def parse_bargraph_info(data) -> dict[int, dict[str, set[str]]]:
+    """
+    Reads and reorders the bargraph json.
+
+    Parameters
+    ----------
+    fn: Path to the bargraph json file
+
+    Returns
+    -------
+    Dictionary verse no -> type -> set of sigils
+
+    """
+    verses = defaultdict(lambda: defaultdict(set))
+    for doc in data:
+        sigil = doc['sigil']
+        for interval in doc['intervals']:
+            kind = interval['type']
+            for n in range(interval['start'], interval['end'] + 1):
+                verses[str(n)][kind].add(sigil)
+
+    return verses
 
 def getargparser():
     p = ArgumentParser(description=__doc__)
