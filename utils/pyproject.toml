@@ -22,6 +22,7 @@ openpyxl = "^3.0.7"
 black = "^21.7b0"
 rope = "^0.19.0"
 lxml-stubs = "^0.4.0"
+line-profiler-pycharm = "^1.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

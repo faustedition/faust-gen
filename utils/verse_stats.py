@@ -10,8 +10,6 @@ the number of relevant paralipomena (from the genetic bargraph) and a few data d
 the TEI file. See the source code of the class Verse for details.
 
 """
-
-
 from __future__ import annotations
 
 import csv
@@ -92,6 +90,14 @@ class VerseStats:
         for note in self.tei.xpath('//tei:note[@type="textcrit"]', namespaces=_ns):
             note.getparent().remove(note)
 
+        # build HTML cache for speedup
+        html_lines: dict[str, etree._Element] = {}
+        for el in self.html.xpath('//*[@data-n]', namespaces=_ns):
+            n = el.get('data-n')
+            if n not in html_lines:
+                html_lines[n] = el
+        self.html_lines = html_lines
+
         self.loaded = True
 
     def lines(self):
@@ -100,7 +106,7 @@ class VerseStats:
         for el_t in self.tei.xpath('//*[@n][not(self::tei:div)]', namespaces=_ns):
             n = el_t.get('n')
             n_h = n[:-1] if n[-1] in 'imf' and n[-2] != '_' else n       # antilabial n's are contracted in html
-            el_h = self.html.xpath(f'//*[@data-n="{n_h}"]', namespaces=_ns)[0]
+            el_h = self.html_lines[n_h] #self.html.xpath(f'//*[@data-n="{n_h}"]', namespaces=_ns)[0]
             variants = int(el_h.get('data-variants'))
             witnesses = int(el_h.get('data-varcount'))
             speaker = normalize_space(''.join(el_t.xpath('ancestor::tei:sp//tei:speaker//text()', namespaces=_ns)))
