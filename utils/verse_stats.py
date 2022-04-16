@@ -12,6 +12,8 @@ the TEI file. See the source code of the class Verse for details.
 """
 from __future__ import annotations
 
+from functools import lru_cache
+
 import csv
 import gzip
 import json
@@ -28,7 +30,7 @@ from lxml import etree
 from tqdm import tqdm
 
 _ns = {'tei': 'http://www.tei-c.org/ns/1.0',
-       'xh': 'http://www.w3.org/1999/html'}
+       'xh': 'http://www.w3.org/1999/xhtml'}
 
 
 @dataclass
@@ -45,6 +47,7 @@ class Verse:
     section: str  # innermost section number (e.g., 2.3.1 for Faust II, 3rd act, first scene)
     lg: str  # if line is inside <lg>, n of the respective lg’s first verse
     text: str  # plain text contents of the line
+    first_variant: str # plain text contents of the first variant from the variant app (emended version)
 
 
 class VerseStats:
@@ -74,15 +77,20 @@ class VerseStats:
             self.edition = edition
             self.from_web = True
 
-    def load(self):
+    def _parse_tree(self, location: str) -> etree._ElementTree:
         if self.from_web:
-            self.html = etree.parse(self.edition + self.html_location)
-            self.tei = etree.parse(self.edition + self.xml_location)
+            return etree.parse(self.edition + location)
+        else:
+            return etree.parse(fspath(self.edition / location))
+
+    def load(self):
+        self.html = self._parse_tree(self.html_location)
+        self.tei = self._parse_tree(self.xml_location)
+
+        if self.from_web:
             with urlopen(self.edition + self.bargraph_location) as response:
                 self.bargraph = parse_bargraph_info(json.load(response))
         else:
-            self.html = etree.parse(fspath(self.edition / self.html_location))
-            self.tei = etree.parse(fspath(self.edition / self.xml_location))
             with (self.edition / self.bargraph_location).open() as f:
                 self.bargraph = parse_bargraph_info(json.load(f))
 
@@ -100,6 +108,23 @@ class VerseStats:
 
         self.loaded = True
 
+
+    @lru_cache(10)
+    def _load_vargroup(self, vargroup):
+        """Loads a vargroup (= HTML file with variants for ~10 verses) and cleans it."""
+        vg = self._parse_tree(f'print/variants/{vargroup}.html')
+        remove_elements(vg, '//xh:span[@class="sigils"]')  # visual display of sigils with that variant
+        remove_elements(vg, '//xh:div[contains(@class, "variant-lines")]')  # lines with inline apparatus
+        remove_elements(vg, '//comment()')
+        return vg
+
+    def get_variants(self, n) -> etree._Element:
+        """loads the variants HTML for a given n. Returns the parent div."""
+        ref_element = self.html_lines[n]
+        vargroup = ref_element.get('data-vargroup')
+        variants_html = self._load_vargroup(vargroup)
+        return variants_html.xpath(f'//xh:div[@class="variants"][@data-n="{n}"]', namespaces=_ns)[0]
+
     def lines(self):
         if not self.loaded:
             self.load()
@@ -110,6 +135,8 @@ class VerseStats:
             variants = int(el_h.get('data-variants'))
             witnesses = int(el_h.get('data-varcount'))
             speaker = normalize_space(''.join(el_t.xpath('ancestor::tei:sp//tei:speaker//text()', namespaces=_ns)))
+            variants_html = self.get_variants(n_h)
+            first_variant = normalize_space(variants_html[0])
             v = Verse(n, variants, witnesses,
                       paralipomena=len(self.bargraph[n]['paralipomena']),
                       paralipomena_uncertain=len(self.bargraph[n]['paralipomena_uncertain']),
@@ -118,8 +145,8 @@ class VerseStats:
                       text=normalize_space(''.join(el_t.xpath('.//text()', namespaces=_ns))),
                       is_text=n.isnumeric() or n.startswith('ttf_'),
                       lg=first(el_t.xpath('ancestor::tei:lg[1]/tei:l[@n][1]/@n', namespaces=_ns)),
-                      section=first(el_t.xpath('ancestor::tei:div[1]/@n', namespaces=_ns))
-                      )
+                      section=first(el_t.xpath('ancestor::tei:div[1]/@n', namespaces=_ns)),
+                      first_variant=first_variant)
             yield v
 
 
@@ -130,9 +157,11 @@ def first(it: Iterable, default=None):
         return default
 
 
-def normalize_space(s: str, ignore_missing=True):
+def normalize_space(s: str | etree._Element, ignore_missing=True):
     if ignore_missing and s is None:
         return None
+    if isinstance(s, etree._Element):
+        s = ''.join(s.itertext())
     return " ".join(s.split())
 
 
@@ -158,6 +187,10 @@ def parse_bargraph_info(data) -> dict[int, dict[str, set[str]]]:
                 verses[str(n)][kind].add(sigil)
 
     return verses
+
+def remove_elements(tree: etree._Element, xpath: str, namespaces=_ns):
+    for el in tree.xpath(xpath, namespaces=namespaces):
+        el.getparent().remove(el)
 
 def getargparser():
     p = ArgumentParser(description=__doc__)
