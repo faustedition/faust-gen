@@ -3,12 +3,18 @@ import csv
 import json
 import sys
 from contextlib import nullcontext
+from pprint import pformat
 
 from PIL import Image
 from lxml import etree
 from pathlib import Path
 
+import logging
+
 from tqdm.auto import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
+
+logger = logging.getLogger(__name__)
 
 ns = {"f": "http://www.faustedition.net/ns"}
 
@@ -31,8 +37,10 @@ def download_config(archives_xml="../data/xml/archives.xml"):
 
 def find_allowed_facsimile(root: Path, path: str, rules: dict):
     if rules.get("downloadable") != "yes":
+        logger.debug('downloadable != yes for %s (rules: %s)', path, rules)
         return None
     elif rules.get("resolution") == "reduced":
+        logger.debug('reduced resulution for %s', path)
         return f"{path}_2.jpg"
     else:
         with Image.open(root / f"{path}_0.jpg") as img:
@@ -127,13 +135,17 @@ def getargparser():
 
 
 def main():
+    logging.basicConfig(level=logging.DEBUG)
     options = getargparser().parse_args()
     rules = download_config(options.archives)
+    if logger.isEnabledFor(logging.DEBUG):
+        logger.debug('Rules: {}', pformat(rules))
     page_data = per_documents_data(options.document_metadata)
-    for page in tqdm(page_data):
-        page["download"] = find_allowed_facsimile(
-            options.image_root, page["base"] / page["img"], rules
-        )
+    with logging_redirect_tqdm():
+        for page in tqdm(page_data):
+            page["download"] = find_allowed_facsimile(
+                options.image_root, page["base"] / page["img"], rules
+            )
     writer = csv.DictWriter(options.output, fieldnames=list(page_data[0]))
     writer.writeheader()
     writer.writerows(page_data)
