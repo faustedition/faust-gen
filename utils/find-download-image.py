@@ -144,7 +144,7 @@ def main():
     with logging_redirect_tqdm():
         for page in tqdm(page_data):
             page["download"] = find_allowed_facsimile(
-                options.image_root, page["base"] / page["img"], rules
+                options.image_root, page["base"] / page["img"], rules[page["repo"]]
             )
     writer = csv.DictWriter(options.output, fieldnames=list(page_data[0]))
     writer.writeheader()
