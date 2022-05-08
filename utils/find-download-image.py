@@ -43,19 +43,23 @@ def find_allowed_facsimile(root: Path, path: str, rules: dict):
         logger.debug('reduced resulution for %s', path)
         return f"{path}_2.jpg"
     else:
-        with Image.open(root / f"{path}_0.jpg") as img:
-            orig_width, _ = img.size
-            orig_dpi, _ = img.info.get("resolution", 300)
-        if is_allowed(orig_width, orig_dpi, rules):
-            return f"{path}_0.jpg"
-        else:
-            for variant in range(1, 9):
-                filename = f"{path}_{variant}.jpg"
-                with Image.open(root / filename) as img:
-                    width, _ = img.size
-                dpi = int(orig_dpi * (width / orig_width))
-                if is_allowed(width, dpi, rules):
-                    return filename
+        logger.debug('path=%s, root=%s', path, root)
+        try:
+            with Image.open(root / f"{path}_0.jpg") as img:
+                orig_width, _ = img.size
+                orig_dpi = img.info.get("resolution", 300)
+            if is_allowed(orig_width, orig_dpi, rules):
+                return f"{path}_0.jpg"
+            else:
+                for variant in range(1, 9):
+                    filename = f"{path}_{variant}.jpg"
+                    with Image.open(root / filename) as img:
+                        width, _ = img.size
+                    dpi = int(orig_dpi * (width / orig_width))
+                    if is_allowed(width, dpi, rules):
+                        return filename
+        except IOError:
+            logger.exception('Failed to read image: path=%s, root=%s', path, root)
     return None
 
 
@@ -81,7 +85,7 @@ def per_documents_data(metadata_json="../build/www/data/document_metadata.json")
     for ms in mss:
         sigil_t = ms["sigil"]
         repo_id = ms["sigils"]["repository"]
-        base = Path(ms["base"])
+        base = Path(*Path(ms["base"]).parts[1:])
         for page_number, page in enumerate(ms["page"], start=1):
             doc = page["doc"]
             if len(doc) > 1:
@@ -135,16 +139,16 @@ def getargparser():
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     options = getargparser().parse_args()
     rules = download_config(options.archives)
     if logger.isEnabledFor(logging.DEBUG):
-        logger.debug('Rules: {}', pformat(rules))
+        logger.debug('Rules: %s', pformat(rules))
     page_data = per_documents_data(options.document_metadata)
     with logging_redirect_tqdm():
         for page in tqdm(page_data):
             page["download"] = find_allowed_facsimile(
-                options.image_root, page["base"] / page["img"], rules[page["repo"]]
+                options.image_root, page["img"], rules.get(page["repo"], {})
             )
     writer = csv.DictWriter(options.output, fieldnames=list(page_data[0]))
     writer.writeheader()
