@@ -30,8 +30,10 @@ def download_config(archives_xml="../data/xml/archives.xml"):
             rules = facs.attrib
             result[id] = rules
         except IndexError:
-            print(f"No facsimile element for {id}")
+            logger.warning(f"No facsimile element for {id}")
             result[id] = {"downloadable": "unknown"}
+    if "print" not in result:
+        result["print"] = {"downloadable": "yes"}
     return result
 
 
@@ -143,7 +145,7 @@ def main():
     options = getargparser().parse_args()
     rules = download_config(options.archives)
     if logger.isEnabledFor(logging.DEBUG):
-        logger.debug('Rules: %s', pformat(rules))
+        logger.info('Rules:\n%s', pformat(rules))
     page_data = per_documents_data(options.document_metadata)
     with logging_redirect_tqdm():
         for page in tqdm(page_data):
