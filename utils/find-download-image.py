@@ -134,7 +134,7 @@ def main():
         page["download"] = find_allowed_facsimile(
             options.image_root, page["base"] / page["img"], rules
         )
-    writer = csv.DictWriter(options.output, fieldnames=list(pages[0]))
+    writer = csv.DictWriter(options.output, fieldnames=list(page_data[0]))
     writer.writeheader()
     writer.writerows(page_data)
     options.output.close()
