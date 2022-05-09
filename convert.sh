@@ -11,11 +11,13 @@
 
 # Eingabeverzeichnis. Hier liegen Unterverzeichnisse mit den Original-Digitalisaten drin
 #input_dir="$PWD"/img/tif 
-input_dir="/media/vitt/909613EC9613D218/Drucke"
+#input_dir="/media/vitt/909613EC9613D218/Drucke"
+#input_dir="/run/user/1000/gvfs/afp-volume:host=NAS.local,user=tv,volume=Thorsten/backup/faust/hdd-gerrit/Drucke/print"
 #input_dir="/faust/img/tif"
+input_dir="/home/tv/tmp/print"
 
 # Ausgabeverzeichnis. Darin entstehen Verzeichnise jpg, jpg_tiles und metadata 
-output_dir=/mnt/data/vitt/facsimile
+output_dir=/home/tv/tmp/facsimile
 #output_dir=/faust/transcript/facsimile
 
 ### Detailanpassung, hier idR nichts verändern:

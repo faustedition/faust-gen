@@ -3,11 +3,9 @@
 from collections import defaultdict
 from pathlib import Path
 from typing import Union
-from importlib_metadata import metadata
 from lxml import etree
 import re
 
-from sympy import pretty_print
 from find_sigil_refs import encode_sigil
 import sys
 import os

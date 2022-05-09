@@ -2,6 +2,7 @@ import argparse
 import csv
 import json
 import sys
+from collections import namedtuple
 from contextlib import nullcontext
 from pprint import pformat
 
@@ -37,43 +38,69 @@ def download_config(archives_xml="../data/xml/archives.xml"):
     return result
 
 
-def find_allowed_facsimile(root: Path, path: str, rules: dict):
+_Allowance = namedtuple("Allowance", "download level reason")
+
+
+def find_allowed_facsimile(root: Path, path: str, rules: dict) -> _Allowance:
+    """
+    Finds the first allowed image according to the rules.
+
+    Args:
+        root: root path for the images
+        path: base path to the page image
+        rules: repository-specific rule set
+
+    Returns: A triple:
+        - path to the downloadable JPEG file, relative to root, already containing scale (or None if no download possible)
+        - scale of the image file (or None)
+        - (last) reason why no better scale is available
+    """
+    forbidden = ""
     if rules.get("downloadable") != "yes":
         logger.debug('downloadable != yes for %s (rules: %s)', path, rules)
-        return None
+        return _Allowance(None, None, "no-download")
     elif rules.get("resolution") == "reduced":
         logger.debug('reduced resulution for %s', path)
-        return f"{path}_2.jpg"
+        return _Allowance(f"{path}_2.jpg", 2, "reduced")
     else:
-        logger.debug('path=%s, root=%s', path, root)
         try:
             with Image.open(root / f"{path}_0.jpg") as img:
                 orig_width, _ = img.size
                 orig_dpi = img.info.get("resolution", 300)
-            if is_allowed(orig_width, orig_dpi, rules):
-                return f"{path}_0.jpg"
-            else:
-                for variant in range(1, 9):
-                    filename = f"{path}_{variant}.jpg"
-                    with Image.open(root / filename) as img:
-                        width, _ = img.size
-                    dpi = int(orig_dpi * (width / orig_width))
-                    if is_allowed(width, dpi, rules):
-                        return filename
+            for variant in range(9):
+                filename = f"{path}_{variant}.jpg"
+                with Image.open(root / filename) as img:
+                    width, _ = img.size
+                dpi = int(orig_dpi * (width / orig_width))
+                forbidden, last_violation = is_forbidden(width, dpi, rules), forbidden
+                if not forbidden:
+                    return _Allowance(filename, variant, last_violation)
         except IOError:
             logger.exception('Failed to read image: path=%s, root=%s', path, root)
-    return None
+            return _Allowance(None, None, "not-found")
+    return _Allowance(None, None, forbidden)
 
 
-def is_allowed(width: int, resolution: int, rules: dict[str, str]):
-    result = True
+def is_forbidden(width: int, resolution: int, rules: dict[str, str]) -> str:
+    """
+    Checks width and resolution against the specific rule set.
+
+    Args:
+        width: image's width in pixels
+        resolution: image's resolution in dpi
+        rules: a single repository's rule set as extracted by `download_config`
+
+    Returns:
+        An empty string if the image is conformant, a short descriptive string of the first violated rule otherwise.
+    """
+    reason = ""
     if rules.get("downloadable") != "yes":
-        result = False
+        reason = "forbidden"
     elif "max-width" in rules and width > int(rules["max-width"]):
-        result = False
+        reason = f"max-width:{rules['max-width']}"
     elif "max-dpi" in rules and resolution > int(rules["max-dpi"]):
-        result = False
-    return result
+        reason = f"max-dpi:{rules['max-dpi']}"
+    return reason
 
 
 def per_documents_data(metadata_json="../build/www/data/document_metadata.json"):
@@ -96,13 +123,13 @@ def per_documents_data(metadata_json="../build/www/data/document_metadata.json")
                 imgs = doc[0]["img"]
                 for img in imgs:
                     pages.append(
-                        {
-                            "repo": repo_id,
-                            "sigil": sigil_t,
-                            "base": base,
-                            "page": page_number,
-                            "img": img,
-                        }
+                            {
+                                "repo": repo_id,
+                                "sigil": sigil_t,
+                                "base": base,
+                                "page": page_number,
+                                "img": img,
+                            }
                     )
     return pages
 
@@ -110,48 +137,55 @@ def per_documents_data(metadata_json="../build/www/data/document_metadata.json")
 def getargparser():
     p = argparse.ArgumentParser()
     p.add_argument(
-        "-a",
-        "--archives",
-        metavar="XML",
-        help="URL for archives.xml",
-        default="https://raw.githubusercontent.com/faustedition/faust-xml/master/xml/archives.xml",
+            "-a",
+            "--archives",
+            metavar="XML",
+            help="URL for archives.xml",
+            default="https://raw.githubusercontent.com/faustedition/faust-xml/master/xml/archives.xml",
     )
     p.add_argument(
-        "-d",
-        "--document-metadata",
-        metavar="JSON",
-        help="Path to document_metadata.js[on]",
-        required=True,
+            "-d",
+            "--document-metadata",
+            metavar="JSON",
+            help="Path to document_metadata.js[on]",
+            required=True,
     )
     p.add_argument(
-        "-i",
-        "--image-root",
-        metavar="PATH",
-        type=Path,
-        help="root folder for scaled (jpg) facsimiles",
+            "-i",
+            "--image-root",
+            metavar="PATH",
+            type=Path,
+            help="root folder for scaled (jpg) facsimiles",
     )
     p.add_argument(
-        "-o",
-        "--output",
-        metavar="CSV",
-        type=argparse.FileType("wt"),
-        default=nullcontext(sys.stdout),
+            "-o",
+            "--output",
+            metavar="CSV",
+            type=argparse.FileType("wt"),
+            default=nullcontext(sys.stdout),
     )
+    p.add_argument("-l", "--log", metavar="LOGFILE", help="Write a debug log")
     return p
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
     options = getargparser().parse_args()
+    if options.log:
+        logging.basicConfig(level=logging.DEBUG, format="%(name)s:%(levelname)s:%(message)s", filename=options.log, filemode="w")
+        console = logging.StreamHandler()
+        console.setLevel(logging.WARNING)
+        console.setFormatter(logging.Formatter('%(levelname)-8s %(message)s'))
+    else:
+        logging.basicConfig(level=logging.INFO, format="%(levelname)-8s %(message)s")
     rules = download_config(options.archives)
     if logger.isEnabledFor(logging.DEBUG):
         logger.info('Rules:\n%s', pformat(rules))
     page_data = per_documents_data(options.document_metadata)
     with logging_redirect_tqdm():
         for page in tqdm(page_data):
-            page["download"] = find_allowed_facsimile(
-                options.image_root, page["img"], rules.get(page["repo"], {})
-            )
+            page.update(find_allowed_facsimile(
+                    options.image_root, page["img"], rules.get(page["repo"], {})
+            )._asdict())
     writer = csv.DictWriter(options.output, fieldnames=list(page_data[0]))
     writer.writeheader()
     writer.writerows(page_data)
