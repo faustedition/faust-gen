@@ -38,7 +38,7 @@ def download_config(archives_xml="../data/xml/archives.xml"):
     return result
 
 
-_Allowance = namedtuple("Allowance", "download level reason")
+_Allowance = namedtuple("Allowance", "download level reason width dpi", defaults=(None, None))
 
 
 def find_allowed_facsimile(root: Path, path: str, rules: dict) -> _Allowance:
@@ -74,7 +74,7 @@ def find_allowed_facsimile(root: Path, path: str, rules: dict) -> _Allowance:
                 dpi = int(orig_dpi * (width / orig_width))
                 forbidden, last_violation = is_forbidden(width, dpi, rules), forbidden
                 if not forbidden:
-                    return _Allowance(filename, variant, last_violation)
+                    return _Allowance(filename, variant, last_violation, width, dpi)
         except IOError:
             logger.exception('Failed to read image: path=%s, root=%s', path, root)
             return _Allowance(None, None, "not-found")
@@ -118,7 +118,7 @@ def per_documents_data(metadata_json="../build/www/data/document_metadata.json")
         for page_number, page in enumerate(ms["page"], start=1):
             doc = page["doc"]
             if len(doc) > 1:
-                print(f"{sigil_t:>6} {page_number}: {len(doc)} docs")
+                logger.warning(f"{sigil_t:>6} {page_number}: {len(doc)} docs")
             if doc and doc[0]:
                 imgs = doc[0]["img"]
                 for img in imgs:
@@ -171,7 +171,7 @@ def getargparser():
 def main():
     options = getargparser().parse_args()
     if options.log:
-        logging.basicConfig(level=logging.DEBUG, format="%(name)s:%(levelname)s:%(message)s", filename=options.log, filemode="w")
+        logging.basicConfig(level=logging.DEBUG, format="%(funcName)s:%(levelname)s:%(message)s", filename=options.log, filemode="w")
         console = logging.StreamHandler()
         console.setLevel(logging.WARNING)
         console.setFormatter(logging.Formatter('%(levelname)-8s %(message)s'))
