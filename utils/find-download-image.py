@@ -11,9 +11,8 @@ from lxml import etree
 from pathlib import Path
 
 import logging
-
-from tqdm.auto import tqdm
-from tqdm.contrib.logging import logging_redirect_tqdm
+from rich.logging import RichHandler
+from rich.progress import track
 
 logger = logging.getLogger(__name__)
 
@@ -75,8 +74,8 @@ def find_allowed_facsimile(root: Path, path: str, rules: dict) -> _Allowance:
                 forbidden, last_violation = is_forbidden(width, dpi, rules), forbidden
                 if not forbidden:
                     return _Allowance(filename, variant, last_violation, width, dpi)
-        except IOError:
-            logger.exception('Failed to read image: path=%s, root=%s', path, root)
+        except OSError as e:
+            logger.error('Failed to read image (path=%s, root=%s): %s', path, root, e)
             return _Allowance(None, None, "not-found")
     return _Allowance(None, None, forbidden)
 
@@ -170,22 +169,23 @@ def getargparser():
 
 def main():
     options = getargparser().parse_args()
+    console_handler = RichHandler(show_time=False)
     if options.log:
         logging.basicConfig(level=logging.DEBUG, format="%(funcName)s:%(levelname)s:%(message)s", filename=options.log, filemode="w")
-        console = logging.StreamHandler()
+        console = console_handler
         console.setLevel(logging.WARNING)
-        console.setFormatter(logging.Formatter('%(levelname)-8s %(message)s'))
+        console.setFormatter(logging.Formatter('%(message)s'))
+        logger.addHandler(console)
     else:
-        logging.basicConfig(level=logging.INFO, format="%(levelname)-8s %(message)s")
+        logging.basicConfig(level=logging.INFO, format="%(message)s", handlers=[console_handler])
     rules = download_config(options.archives)
-    if logger.isEnabledFor(logging.DEBUG):
+    if logger.isEnabledFor(logging.INFO):
         logger.info('Rules:\n%s', pformat(rules))
     page_data = per_documents_data(options.document_metadata)
-    with logging_redirect_tqdm():
-        for page in tqdm(page_data):
-            page.update(find_allowed_facsimile(
-                    options.image_root, page["img"], rules.get(page["repo"], {})
-            )._asdict())
+    for page in track(page_data, description='Analyzing images ...'):
+        page.update(find_allowed_facsimile(
+                options.image_root, page["img"], rules.get(page["repo"], {})
+        )._asdict())
     writer = csv.DictWriter(options.output, fieldnames=list(page_data[0]))
     writer.writeheader()
     writer.writerows(page_data)
