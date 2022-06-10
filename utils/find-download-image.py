@@ -4,6 +4,9 @@ import json
 import sys
 from collections import namedtuple
 from contextlib import nullcontext
+from itertools import groupby
+from json import JSONEncoder
+from operator import itemgetter
 from pprint import pformat
 
 from PIL import Image
@@ -157,21 +160,69 @@ def getargparser():
             help="root folder for scaled (jpg) facsimiles",
     )
     p.add_argument(
-            "-o",
-            "--output",
+            "-c",
+            "--csv",
             metavar="CSV",
             type=argparse.FileType("wt"),
             default=nullcontext(sys.stdout),
     )
+    p.add_argument(
+            "-o",
+            "--output",
+            type=Path,
+            help="Target for the JSON files"
+    )
     p.add_argument("-l", "--log", metavar="LOGFILE", help="Write a debug log")
     return p
+
+
+class PathEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Path):
+            return str(obj)
+        else:
+            return super().default(obj)
+
+
+def write_restrictions_json(pages: list[dict], target: Path):
+    """Writes the restrictions json used internally in the site"""
+    restricted_pages = [page for page in pages if page['level'] != 0]
+    data = {page['img']: page['download'] for page in restricted_pages}
+    with target.open("wt") as output:
+        json.dump(data, output, cls=PathEncoder)
+
+
+def write_downloads_json(pages: list[dict], target: Path):
+    data = {
+        sigil: {
+            page:
+                ['http://faustedition.net/transcript/facsimile/jpg/' + img['download'] for img in images if img.get('download')]
+            for page, images in groupby(wit_pages, itemgetter("page"))
+        }
+        for sigil, wit_pages in groupby(pages, itemgetter("sigil"))
+    }
+    with target.open('wt') as output:
+        json.dump(data, output, cls=PathEncoder)
+
+
+def write_json(pages: list[dict], target: Path):
+    if target.suffix == '.json':
+        downloads = target
+        restrictions = target.with_stem(target.stem + '-restrictions')
+    else:
+        restrictions = target / 'download-restrictions.json'
+        downloads = target / 'facsimile-downloads.json'
+    target.parent.mkdir(parents=True, exist_ok=True)
+    write_restrictions_json(pages, restrictions)
+    write_downloads_json(pages, downloads)
 
 
 def main():
     options = getargparser().parse_args()
     console_handler = RichHandler(show_time=False)
     if options.log:
-        logging.basicConfig(level=logging.DEBUG, format="%(funcName)s:%(levelname)s:%(message)s", filename=options.log, filemode="w")
+        logging.basicConfig(level=logging.DEBUG, format="%(funcName)s:%(levelname)s:%(message)s", filename=options.log,
+                            filemode="w")
         console = console_handler
         console.setLevel(logging.WARNING)
         console.setFormatter(logging.Formatter('%(message)s'))
@@ -186,10 +237,14 @@ def main():
         page.update(find_allowed_facsimile(
                 options.image_root, page["img"], rules.get(page["repo"], {})
         )._asdict())
-    writer = csv.DictWriter(options.output, fieldnames=list(page_data[0]))
+    if options.output:
+        write_json(page_data, options.output)
+
+    writer = csv.DictWriter(options.csv, fieldnames=list(page_data[0]))
     writer.writeheader()
     writer.writerows(page_data)
-    options.output.close()
+    options.csv.close()
+
 
 
 if __name__ == "__main__":
