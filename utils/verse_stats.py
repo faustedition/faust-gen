@@ -27,7 +27,7 @@ from typing import Optional, Iterable
 from urllib.request import urlopen
 
 from lxml import etree
-from tqdm import tqdm
+from rich.progress import track
 
 _ns = {'tei': 'http://www.tei-c.org/ns/1.0',
        'xh': 'http://www.w3.org/1999/xhtml'}
@@ -217,7 +217,7 @@ def main():
     try:
         writer = csv.DictWriter(output_file, list(field.name for field in fields(Verse)))
         writer.writeheader()
-        for verse in tqdm(vs.lines(), total=15200, desc='Analyzing'):
+        for verse in track(vs.lines(), total=15200, description='Analyzing'):
             writer.writerow(asdict(verse))
     finally:
         if output_file != sys.stdout:
