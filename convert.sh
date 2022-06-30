@@ -101,8 +101,8 @@ do
   #create json metadata
   echo "           creating json metadata"
   #json_file=$(echo "$file" | sed "s#^\.#"$output_metadata"#;s/\.tif$/\.json/" )
-  image_width=$(identify $file 2>/dev/null | sed -n '1 p' | cut -d\   -f3 | cut -dx -f1)
-  image_height=$(identify $file 2>/dev/null | sed -n '1 p' | cut -d\   -f3 | cut -dx -f2)
+  image_width=$(identify -format '%w' "$file" 2>/dev/null)
+  image_height=$(identify -format '%h' "$file" 2>/dev/null)
   printf "{\n  \"imageWidth\": %s,\n  \"imageHeight\": %s,\n  \"tileWidth\": %s,\n  \"tileHeight\": %s,\n  \"zoomLevels\": %s\n}" ${image_width} ${image_height} ${tile_width} ${tile_height} ${zoom_levels}  > "${json_file}"
 
 
