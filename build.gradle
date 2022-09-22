@@ -78,8 +78,8 @@ dependencies {
     implementation 'com.mycila:mycila-xmltool:4.4.ga'
     implementation 'com.google.guava:guava-collections:r03'
 
-    tools 'slimerjs:slimerjs:1.0.0@tar.bz2'
-    tools 'org.mozilla:firefox:59.0@tar.bz2'
+    // tools 'slimerjs:slimerjs:1.0.0@tar.bz2'
+    // tools 'org.mozilla:firefox:59.0@tar.bz2'
 
     // exist 'org.exist-db:exist-ant:4.4.0'        // ≥ 5.0.0
     exist 'org.exist-db:exist-core:4.4.0'          // < 5.0.0
