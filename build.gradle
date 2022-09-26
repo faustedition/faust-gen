@@ -115,6 +115,18 @@ task copySource(type: CopyWithSymlink) {
     into "$buildDir/www/xml"
 }
 
+task copyTextXml(type: CopyWithSymlink) {
+    from("$buildDir/lesetext") { 
+        include 'faust.xml' 
+    }
+    into "$buildDir/www/download"
+}
+
+task copyWitnessStats(type: CopyWithSymlink) {
+    from("$buildDir/www/macrogenesis") { include 'witness-stats.json' }
+    into "$buildDir/www/data"
+}
+
 task generateSVGs(type: JavaExec) {
     description "Generates SVGs of diplomatic transcripts and overlays"
     // dependsOn installTools
@@ -217,7 +229,7 @@ task deployToExist {
     }
 }
 
-assemble.dependsOn generateSVGs, copyWeb, copySource, xar
+assemble.dependsOn generateSVGs, copyWeb, copySource, xar, copyTextXml, copyWitnessStats
 
 
 task showProps { doLast {
