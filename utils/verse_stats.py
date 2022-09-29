@@ -28,6 +28,9 @@ from urllib.request import urlopen
 
 from lxml import etree
 from rich.progress import track
+from textdistance import NeedlemanWunsch
+from string import punctuation
+from functools import lru_cache
 
 _ns = {'tei': 'http://www.tei-c.org/ns/1.0',
        'xh': 'http://www.w3.org/1999/xhtml'}
@@ -39,6 +42,7 @@ class Verse:
     n: str  # line id (source: @n). 1-12111 for verses, something like before_1178_b for paratext.
     variants: int  # number of variants for this line.
     witnesses: int  # number of witnesses that have this line.
+    manuscripts: int # number of manuscripts that have this line.
     paralipomena: int  # number of witnesses with paralipomena that are related to this line (only for verses!)
     paralipomena_uncertain: int  # ditto, but uncertain relationship
     speaker: Optional[str]  # speaker of the line, if inside a speech act (tei:sp/tei:speaker)
@@ -46,9 +50,22 @@ class Verse:
     is_text: bool  # True iff it’s main text
     section: str  # innermost section number (e.g., 2.3.1 for Faust II, 3rd act, first scene)
     lg: str  # if line is inside <lg>, n of the respective lg’s first verse
+    variance: float # how different are text and first variant
     text: str  # plain text contents of the line
     first_variant: str # plain text contents of the first variant from the variant app (emended version)
 
+@lru_cache
+def _punct_is_similar(a, b):
+    if a == b:
+        return True
+    elif a in punctuation and b in punctuation:
+        return 0.8
+    elif a in punctuation or b in punctuation:
+        return 0.5
+    else:
+        return False
+
+needleman_wunsch = NeedlemanWunsch(sim_func=_punct_is_similar)
 
 class VerseStats:
     DEFAULT_URL = "http://faustedition.net/"
@@ -137,15 +154,19 @@ class VerseStats:
             speaker = normalize_space(''.join(el_t.xpath('ancestor::tei:sp//tei:speaker//text()', namespaces=_ns)))
             variants_html = self.get_variants(n_h)
             first_variant = normalize_space(variants_html[0])
+            text = normalize_space(''.join(el_t.xpath('.//text()', namespaces=_ns)))
+            variance = needleman_wunsch(first_variant, text)
             v = Verse(n, variants, witnesses,
+                      manuscripts=len(self.bargraph[n]['ms_verseLine']),
                       paralipomena=len(self.bargraph[n]['paralipomena']),
                       paralipomena_uncertain=len(self.bargraph[n]['paralipomena_uncertain']),
                       speaker=speaker,
                       element=el_t.tag.split('}')[-1],
-                      text=normalize_space(''.join(el_t.xpath('.//text()', namespaces=_ns))),
+                      text=text,
                       is_text=n.isnumeric() or n.startswith('ttf_'),
                       lg=first(el_t.xpath('ancestor::tei:lg[1]/tei:l[@n][1]/@n', namespaces=_ns)),
                       section=first(el_t.xpath('ancestor::tei:div[1]/@n', namespaces=_ns)),
+                      variance=variance,
                       first_variant=first_variant)
             yield v
 
@@ -181,10 +202,13 @@ def parse_bargraph_info(data) -> dict[int, dict[str, set[str]]]:
     verses = defaultdict(lambda: defaultdict(set))
     for doc in data:
         sigil = doc['sigil']
+        is_print = doc['print']
         for interval in doc['intervals']:
             kind = interval['type']
             for n in range(interval['start'], interval['end'] + 1):
                 verses[str(n)][kind].add(sigil)
+                if not is_print:
+                    verses[str(n)]['ms_' + kind].add(sigil)
 
     return verses
 
