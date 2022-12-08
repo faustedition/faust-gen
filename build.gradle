@@ -243,5 +243,5 @@ task showProps { doLast {
 }}
 
 tasks.getByPath("src:main:xproc:generateSearch").dependsOn(tasks.getByPath("macrogen:runMacrogenAnalysis"))
-tasks.getByPath("macrogen:runMacrogenReporting").dependsOn(tasks.getByPath("src:main:xproc:paraTable"))
 tasks.getByPath("macrogen:runMacrogenReporting").dependsOn(tasks.getByPath("src:main:xproc:bargraphData"))
+// tasks.getByPath("macrogen:runMacrogenAnalysis").dependsOn(tasks.getByPath("src:main:xproc:metadataJs"))
