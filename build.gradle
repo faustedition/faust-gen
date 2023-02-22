@@ -235,7 +235,7 @@ task deployToExist {
     }
 }
 
-assemble.dependsOn generateSVGs, copyWeb, copySource, xar, copyTextXml, copyWitnessStats, tasks.getByPath("src:main:xproc:assemble")
+assemble.dependsOn generateSVGs, copyWeb, copySource, xar, copyTextXml, copyWitnessStats, tasks.getByPath("src:main:xproc:assemble"), task.getByPath("macrogen:runMacrogenReporting")
 
 
 task showProps { doLast {
