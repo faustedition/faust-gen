@@ -125,6 +125,7 @@ task copyTextXml(type: CopyWithSymlink) {
 task copyWitnessStats(type: CopyWithSymlink) {
     from("$buildDir/www/macrogenesis") { include 'witness-stats.json' }
     into "$buildDir/www/data"
+    dependsOn copyWeb
 }
 
 task generateSVGs(type: JavaExec) {
@@ -245,3 +246,4 @@ task showProps { doLast {
 tasks.getByPath("src:main:xproc:generateSearch").dependsOn(tasks.getByPath("macrogen:runMacrogenAnalysis"))
 tasks.getByPath("macrogen:runMacrogenReporting").dependsOn(tasks.getByPath("src:main:xproc:bargraphData"))
 // tasks.getByPath("macrogen:runMacrogenAnalysis").dependsOn(tasks.getByPath("src:main:xproc:metadataJs"))
+tasks.getByName("copyWitnessStats").dependsOn(tasks.getByPath("macrogen:runMacrogenReporting"))
