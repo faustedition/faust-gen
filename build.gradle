@@ -34,7 +34,8 @@ if (!project.hasProperty('dataDir')) {
 group = 'net.faustedition'
 version = '1.0-SNAPSHOT'
 description = 'Faust-Edition Site Generation'
-sourceCompatibility = '1.8'
+sourceCompatibility = '17'
+targetCompatibility = '17'
 
 
 repositories {
