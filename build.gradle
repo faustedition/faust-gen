@@ -16,6 +16,7 @@ ext.xmlDir = file('data/xml', PathValidation.DIRECTORY)
 
 node {
     download = true
+    version = "18.20.4"
     workDir = file("$toolDir/node")
 }
 
@@ -40,12 +41,6 @@ targetCompatibility = '17'
 
 repositories {
     mavenLocal()
-    // vendored in stuff:
-    ivy {
-      url = uri("$rootDir/vendor")
-      patternLayout { artifact "[module]-[revision](.[ext])" }
-      metadataSources { artifact() }
-    }
     // Firefox and SlimerJS need to be downloaded directly:
     ivy {
         url "https://ftp.mozilla.org/pub"
@@ -65,10 +60,23 @@ repositories {
     }
     maven { url = 'https://repo.osgeo.org/repository/release/' } // jai_core, cf. https://stackoverflow.com/questions/26993105
     mavenCentral()
-    // maven { url = 'https://dev.digital-humanities.de/nexus/content/groups/public' }
+    maven { 
+      url 'http://download.digital-humanities.de/repo/snapshots' 
+      allowInsecureProtocol = true 
+    }
+    maven { 
+      url 'http://download.digital-humanities.de/repo/releases' 
+      allowInsecureProtocol = true 
+    }
     maven { url = 'https://dev.dariah.eu/nexus/content/groups/public' }
     maven { url = 'https://maven.restlet.talend.com' }
     maven { url = 'https://raw.github.com/eXist-db/mvn-repo/master/' } // for < 5.0.0
+    // vendored in stuff:
+    ivy {
+      url = uri("$rootDir/vendor")
+      patternLayout { artifact "[module]-[revision](.[ext])" }
+      metadataSources { artifact() }
+    }
 }
 
 configurations {
@@ -82,10 +90,9 @@ dependencies {
     implementation group: 'net.sf.saxon', name: 'Saxon-HE', version: '10.5'
     implementation 'org.nanohttpd:nanohttpd-webserver:2.2.0'
     implementation 'de.faustedition:faust:1.4-SNAPSHOT'
-    implementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.10'
-    implementation 'com.google.guava:guava:11.0.2'
-    implementation 'org.apache.xmlgraphics:batik-rasterizer:1.14'
-    implementation 'de.faustedition:faust:1.4-SNAPSHOT:pom'
+    //implementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.10'
+    //implementation 'com.google.guava:guava:11.0.2'
+    //implementation 'org.apache.xmlgraphics:batik-rasterizer:1.14'
     implementation 'com.mycila:mycila-xmltool:4.4.ga'
     implementation 'com.google.guava:guava-collections:r03'
 
