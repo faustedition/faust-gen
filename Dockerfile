@@ -30,7 +30,9 @@ COPY --chown=gradle:gradle . /home/gradle/faust-gen
 COPY --chown=gradle:gradle init.gradle.kts /home/gradle/.gradle/init.gradle.kts
 WORKDIR /home/gradle/faust-gen
 USER gradle
+ARG CACHEBUST=0
 RUN gradle ${GRADLE_TASKS} --no-daemon --info --continue
+VOLUME ["/home/gradle/faust-gen/build"]
 
 FROM php:8-apache AS www
-COPY --from=build /home/gradle/src/build/www /var/www/html
+COPY --from=build /home/gradle/faust-gen/build/www /var/www/html
