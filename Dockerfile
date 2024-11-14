@@ -1,6 +1,9 @@
+# syntax=docker/dockerfile:1
+
 FROM gradle:7.5 AS build
 LABEL stage=builder
 ARG GRADLE_TASKS="clean build"
+
 # All following dependencies are required for chromium which renders the SVGs:
 RUN apt-get update && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -28,11 +31,14 @@ RUN apt-get update && \
   libxcomposite1
 COPY --chown=gradle:gradle . /home/gradle/faust-gen
 COPY --chown=gradle:gradle init.gradle.kts /home/gradle/.gradle/init.gradle.kts
+
 WORKDIR /home/gradle/faust-gen
 USER gradle
-ARG CACHEBUST=0
-RUN gradle ${GRADLE_TASKS} --no-daemon --info --continue
+# ARG CACHEBUST=0
+RUN gradle ${GRADLE_TASKS} --no-daemon --continue
 VOLUME ["/home/gradle/faust-gen/build"]
 
 FROM php:8-apache AS www
+LABEL stage=www
+RUN a2enmod rewrite
 COPY --from=build /home/gradle/faust-gen/build/www /var/www/html
