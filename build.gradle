@@ -4,7 +4,7 @@ import org.apache.tools.ant.filters.*
 plugins {
     id 'base'
     id 'java-library'
-    id "com.github.node-gradle.node" version "3.0.0-rc2"
+    id "com.github.node-gradle.node" version "3.6.0"
     id 'org.barfuin.gradle.taskinfo' version '1.0.5'
 }
 
@@ -59,7 +59,8 @@ repositories {
     }
     maven { url = 'https://repo.osgeo.org/repository/release/' } // jai_core, cf. https://stackoverflow.com/questions/26993105
     mavenCentral()
-    maven { url = 'https://dev.digital-humanities.de/nexus/content/groups/public' }
+    maven { url "http://dev.digital-humanities.de/nexus/content/groups/public"
+            allowInsecureProtocol true }
     maven { url = 'https://dev.dariah.eu/nexus/content/groups/public' }
     maven { url = 'https://maven.restlet.com' }
     maven { url = 'https://raw.github.com/eXist-db/mvn-repo/master/' } // for < 5.0.0
