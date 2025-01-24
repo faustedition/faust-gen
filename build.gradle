@@ -203,7 +203,7 @@ task xar(type: Zip) {
 task deployRSync(type: Exec) {
     dependsOn 'build'
     workingDir buildDir
-    commandLine 'rsync', '-a', '-u', '--chmod=ug+rwX,o+rX,Dg+s', '--omit-dir-times', '--info=del,stats2,copy,flist2', "${buildDir}/www/", uploadUrl
+    commandLine 'rsync', "--rsh=ssh -l ${System.getenv('UPLOAD_USER')} -i ${System.getenv('UPLOAD_PRIVATE_KEY')}", '-a', '-u', '--chmod=ug+rwX,o+rX,Dg+s', '--omit-dir-times', '--info=del,stats2,copy,flist2', "${buildDir}/www/", uploadUrl
 }
 
 task deployToExist {
